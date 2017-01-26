@@ -1,0 +1,9 @@
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.Test.dll
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.Test.pdb
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.dll
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.pdb
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.xml
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.csprojResolveAssemblyReference.cache
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.dll
+C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.pdb
