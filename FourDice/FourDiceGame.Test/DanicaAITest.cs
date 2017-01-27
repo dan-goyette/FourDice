@@ -17,19 +17,21 @@ namespace FourDiceGame.Test
         [TestInitialize]
         public void TestInit()
         {
-            danicaAI = new Danica();
+            danicaAI = new Danica(PlayerType.Player1);
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public void DanicasTest()
         {
             FourDice fourDice = new FourDice("danicaAI");
-            //fourDice.GameState
+            fourDice.GameState.CurrentPlayer = fourDice.GameState.Player1;
+            fourDice.GameState.Dice[0].Value = 1;
+            fourDice.GameState.Dice[1].Value = 2;
+            fourDice.GameState.Dice[2].Value = 3;
+            fourDice.GameState.Dice[3].Value = 4;
 
             var nextMoves = danicaAI.GetNextMoves(fourDice.GameState);
-            //
-            // TODO: Add test logic here
-            //
+
         }
     }
 }

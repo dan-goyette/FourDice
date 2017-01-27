@@ -135,7 +135,7 @@ namespace FourDiceGame
 		}
 
 
-		private static void ValidateTurnAction( TurnAction turnAction, ref TurnAction lastTurnAction )
+		public static void ValidateTurnAction( TurnAction turnAction, ref TurnAction lastTurnAction )
 		{
 			// Ensures that the chosen actions are reasonable given the state of the board. 
 
