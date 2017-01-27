@@ -25,11 +25,17 @@ namespace FourDiceGame
 
 		public void ApplyTurnAction( TurnAction turnAction )
 		{
-			ValidateTurnAction( turnAction );
+			ApplyTurnActionToGameState( this.GameState, turnAction, ref this._lastTurnAction );
+		}
+
+
+		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, ref TurnAction lastTurnAction )
+		{
+			ValidateTurnAction( turnAction, ref lastTurnAction );
 
 
 			// Apply the change
-			var die = this.GameState.Dice[turnAction.DieIndex];
+			var die = gameState.Dice[turnAction.DieIndex];
 
 			// Indicate that this die was chosen. This will cause this to be rerolled.
 			die.IsChosen = true;
@@ -41,18 +47,18 @@ namespace FourDiceGame
 				// Determine the movement delta 
 				int movementDelta = die.Value;
 
-				if ( GameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 				if ( turnAction.Direction == PieceMovementDirection.Backward ) {
 					movementDelta *= -1;
 				}
 
-				var defender = GameState.CurrentPlayer.Defenders[turnAction.PieceIndex.Value];
+				var defender = gameState.CurrentPlayer.Defenders[turnAction.PieceIndex.Value];
 
 				if ( defender.BoardPositionType == BoardPositionType.DefenderCircle ) {
 					defender.BoardPositionType = BoardPositionType.Lane;
-					defender.LanePosition = GameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
+					defender.LanePosition = gameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
 					// Make the movement delta one closer to 0, as one movement was consumed.
 					if ( movementDelta > 0 ) {
 						movementDelta -= 1;
@@ -68,22 +74,22 @@ namespace FourDiceGame
 			else if ( turnAction.PieceType == PieceType.Attacker ) {
 				int movementDelta = die.Value;
 
-				if (GameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 
-				var attacker = GameState.CurrentPlayer.Attackers[turnAction.PieceIndex.Value];
+				var attacker = gameState.CurrentPlayer.Attackers[turnAction.PieceIndex.Value];
 				if ( attacker.LanePosition == null ) {
 					// This piece hasn't moved. Set its initial lane position to the current player's goal.
 					attacker.BoardPositionType = BoardPositionType.Lane;
-					attacker.LanePosition = GameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
+					attacker.LanePosition = gameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
 				}
 				// Now move it the apropriate number of places.
 				attacker.LanePosition += movementDelta;
 
 
-				if (GameState.CurrentPlayer.PlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
-					|| GameState.CurrentPlayer.PlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
+				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
+					|| gameState.CurrentPlayer.PlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
 					// The player has scored.
 					attacker.LanePosition = null;
 					attacker.BoardPositionType = BoardPositionType.OpponentGoal;
@@ -97,13 +103,13 @@ namespace FourDiceGame
 
 			// Determine whether any opponent pieces must be sent back.
 			if ( newPlayerPosition.HasValue ) {
-				int pieceCount = this.GameState.Player1.Attackers.Count( a => a.LanePosition == newPlayerPosition.Value )
-					+ this.GameState.Player1.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value )
-					+ this.GameState.Player2.Attackers.Count( a => a.LanePosition == newPlayerPosition.Value )
-					+ this.GameState.Player2.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value );
+				int pieceCount = gameState.Player1.Attackers.Count( a => a.LanePosition == newPlayerPosition.Value )
+					+ gameState.Player1.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value )
+					+ gameState.Player2.Attackers.Count( a => a.LanePosition == newPlayerPosition.Value )
+					+ gameState.Player2.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value );
 
 				if ( pieceCount == 3 ) {
-					Player playerToAffect = GameState.CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
+					Player playerToAffect = gameState.CurrentPlayer == gameState.Player1 ? gameState.Player2 : gameState.Player1;
 					foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
 						if ( attacker.LanePosition == newPlayerPosition.Value ) {
 							// Send this attack back. If there were two attackers here, we just send back 
@@ -118,30 +124,30 @@ namespace FourDiceGame
 
 
 			// Set this to the last turn if this was the first turn, otherwise switch to the other player.
-			if ( _lastTurnAction == null ) {
-				_lastTurnAction = turnAction;
+			if ( lastTurnAction == null ) {
+				lastTurnAction = turnAction;
 			}
 			else {
-				_lastTurnAction = null;
-                GameState.CurrentPlayer = GameState.CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
+				lastTurnAction = null;
+				gameState.CurrentPlayer = gameState.CurrentPlayer == gameState.Player1 ? gameState.Player2 : gameState.Player1;
 			}
 		}
 
 
-		private void ValidateTurnAction( TurnAction turnAction )
+		private static void ValidateTurnAction( TurnAction turnAction, ref TurnAction lastTurnAction )
 		{
 			// Ensures that the chosen actions are reasonable given the state of the board. 
 
-			if ( _lastTurnAction != null ) {
+			if ( lastTurnAction != null ) {
 				// Validate that if this is the second action, it is consistent with the previous action.
-				if ( _lastTurnAction.DieIndex == turnAction.DieIndex ) {
+				if ( lastTurnAction.DieIndex == turnAction.DieIndex ) {
 					throw new InvalidOperationException( string.Format( "The same DieIndex may not be chosen in both actions." ) );
 				}
 
-				if ( _lastTurnAction.PieceIndex.HasValue && turnAction.PieceIndex.HasValue
-					&& _lastTurnAction.PieceType.HasValue && turnAction.PieceType.HasValue
-					&& _lastTurnAction.PieceIndex.Value == turnAction.PieceIndex.Value
-					&& _lastTurnAction.PieceType.Value == turnAction.PieceType.Value ) {
+				if ( lastTurnAction.PieceIndex.HasValue && turnAction.PieceIndex.HasValue
+					&& lastTurnAction.PieceType.HasValue && turnAction.PieceType.HasValue
+					&& lastTurnAction.PieceIndex.Value == turnAction.PieceIndex.Value
+					&& lastTurnAction.PieceType.Value == turnAction.PieceType.Value ) {
 					throw new InvalidOperationException( string.Format( "The same PieceIndex may not be chosen for the same PieceType in both actions." ) );
 
 				}
@@ -232,9 +238,9 @@ namespace FourDiceGame
 	{
 		public Player Player1;
 		public Player Player2;
-        public Player CurrentPlayer;
+		public Player CurrentPlayer;
 
-        public Die[] Dice;
+		public Die[] Dice;
 
 
 		public GameState( string player2AiName, string player1AiName = null )
