@@ -24,14 +24,14 @@ namespace FourDiceGame.AI
 			for ( var dieIndex = 0; dieIndex < 4; dieIndex++ ) {
 				//var die = gameState.Dice[dieIndex];
 				for ( var pieceIndex = 0; pieceIndex < player.Attackers.Length; pieceIndex++ ) {
-					var turnAction = new TurnAction() {
-						DieIndex = dieIndex,
-						Direction = PieceMovementDirection.Forward,
-						PieceType = PieceType.Attacker,
-						PieceIndex = pieceIndex
-					};
+					var turnAction = new TurnAction( dieIndex, PieceMovementDirection.Forward, PieceType.Attacker, pieceIndex );
 					TurnAction prevAction = null;
-					//FourDice.ValidateTurnAction(gameState, turnAction);
+					var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, prevAction );
+
+					if ( !validationResult.IsValidAction ) {
+						// TODO: The action isn't valid. Skip to next turn?
+					}
+
 					var copiedGameState = new GameState( "" );
 
 					gameState.CopyTo( copiedGameState );

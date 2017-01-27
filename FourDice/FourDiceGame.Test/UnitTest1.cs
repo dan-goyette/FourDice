@@ -43,12 +43,7 @@ namespace FourDiceGame.Test
 
 
 			{
-				var turn1 = new TurnAction() {
-					DieIndex = 0,
-					PieceType = PieceType.Defender,
-					PieceIndex = 0,
-					Direction = PieceMovementDirection.Forward
-				};
+				var turn1 = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Defender, 0 );
 				fourDice.ApplyTurnAction( turn1 );
 
 
@@ -62,12 +57,7 @@ namespace FourDiceGame.Test
 				Assert.AreEqual( FourDice.Player1DefenderCircleLanePosition, fourDice.GameState.Player1.Defenders[0].LanePosition );
 
 
-				var turn2 = new TurnAction() {
-					DieIndex = 1,
-					PieceType = PieceType.Attacker,
-					PieceIndex = 0,
-					Direction = PieceMovementDirection.Forward
-				};
+				var turn2 = new TurnAction( 1, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				fourDice.ApplyTurnAction( turn2 );
 
 				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.GetCurrentPlayer() );
@@ -90,12 +80,7 @@ namespace FourDiceGame.Test
 
 			{
 
-				var turn1 = new TurnAction() {
-					DieIndex = 3,
-					PieceType = PieceType.Attacker,
-					PieceIndex = 0,
-					Direction = PieceMovementDirection.Forward
-				};
+				var turn1 = new TurnAction( 3, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				fourDice.ApplyTurnAction( turn1 );
 
 
@@ -109,12 +94,7 @@ namespace FourDiceGame.Test
 				Assert.AreEqual( FourDice.Player2GoalLanePosition - fourDice.GameState.Dice[3].Value, fourDice.GameState.Player2.Attackers[0].LanePosition );
 
 
-				var turn2 = new TurnAction() {
-					DieIndex = 2,
-					PieceType = PieceType.Attacker,
-					PieceIndex = 1,
-					Direction = PieceMovementDirection.Forward
-				};
+				var turn2 = new TurnAction( 2, PieceMovementDirection.Forward, PieceType.Attacker, 1 );
 				fourDice.ApplyTurnAction( turn2 );
 
 				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.GetCurrentPlayer() );
