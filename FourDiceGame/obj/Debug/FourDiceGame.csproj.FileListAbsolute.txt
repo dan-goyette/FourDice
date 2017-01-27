@@ -1,8 +1,3 @@
-C:\Users\Dan\Documents\GitHub\FourDice\FourDiceGame\bin\Debug\FourDiceGame.dll
-C:\Users\Dan\Documents\GitHub\FourDice\FourDiceGame\bin\Debug\FourDiceGame.pdb
-C:\Users\Dan\Documents\GitHub\FourDice\FourDiceGame\obj\Debug\FourDiceGame.csprojResolveAssemblyReference.cache
-C:\Users\Dan\Documents\GitHub\FourDice\FourDiceGame\obj\Debug\FourDiceGame.dll
-C:\Users\Dan\Documents\GitHub\FourDice\FourDiceGame\obj\Debug\FourDiceGame.pdb
 D:\GitHub\FourDice\FourDiceGame\bin\Debug\FourDiceGame.dll
 D:\GitHub\FourDice\FourDiceGame\bin\Debug\FourDiceGame.pdb
 D:\GitHub\FourDice\FourDiceGame\obj\Debug\FourDiceGame.csprojResolveAssemblyReference.cache
