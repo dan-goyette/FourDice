@@ -49,6 +49,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="FourDice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="FourDiceUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

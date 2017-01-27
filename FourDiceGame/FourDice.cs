@@ -273,10 +273,10 @@ namespace FourDiceGame
 
 			while ( player1Total == player2Total ) {
 				RerollDice( onlyRerollChosenDie: false );
-                player1Total = GameState.Dice[0].Value + GameState.Dice[1].Value;
-                player2Total = GameState.Dice[2].Value + GameState.Dice[3].Value;
+				player1Total = GameState.Dice[0].Value + GameState.Dice[1].Value;
+				player2Total = GameState.Dice[2].Value + GameState.Dice[3].Value;
 
-            }
+			}
 
 			return player1Total > player2Total ? PlayerType.Player1 : PlayerType.Player2;
 		}
@@ -489,19 +489,17 @@ namespace FourDiceGame
 	[Serializable]
 	public class Die
 	{
-		private Random _random;
 		public Die()
 		{
-			_random = new Random();
 		}
 		public int Value;
 
 		public void Roll()
 		{
-			Value = _random.Next( 1, 7 );
-            Debug.WriteLine(Value);
+			Value = FourDiceUtils.Random.Next( 1, 7 );
+			Debug.WriteLine( Value );
 
-        }
+		}
 		public bool IsChosen;
 	}
 

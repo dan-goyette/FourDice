@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FourDiceGame.Test
@@ -112,6 +113,7 @@ namespace FourDiceGame.Test
 
 
 
+
 		[TestMethod]
 		public void CopyGameStateTest()
 		{
@@ -130,22 +132,22 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure you can pick the same two dice on each turn.
-				var gameState = new GameState( "AI" );				
+				var gameState = new GameState( "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
 				TurnAction lastTurnAction = new TurnAction( 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
 				Assert.IsFalse( validationResult.IsValidAction );
-				Assert.IsNull( validationResult.NewBoardPositionType);
+				Assert.IsNull( validationResult.NewBoardPositionType );
 				Assert.IsNull( validationResult.NewLanePosition );
 				Assert.IsNull( validationResult.PieceToMove );
 				Assert.AreEqual( "The same DieIndex may not be chosen in both actions.", validationResult.ValidationFailureReason );
 			}
-			
+
 			{
 				// Ensure the same piece can't be moved on both turns.
 				var gameState = new GameState( "AI" );
-				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker,0 );
-				TurnAction lastTurnAction = new TurnAction( 1 , PieceMovementDirection.Forward, PieceType.Attacker, 0 );
+				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
+				TurnAction lastTurnAction = new TurnAction( 1, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
 				Assert.IsFalse( validationResult.IsValidAction );
 				Assert.IsNull( validationResult.NewBoardPositionType );
