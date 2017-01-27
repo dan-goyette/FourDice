@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AI\Danica.cs" />
+    <Compile Include="AI\IFourDiceAI.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="FourDice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

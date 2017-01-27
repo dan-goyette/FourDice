@@ -7,3 +7,10 @@ C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\Micr
 C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.csprojResolveAssemblyReference.cache
 C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.dll
 C:\Users\Dan\Documents\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.pdb
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.Test.dll
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.Test.pdb
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.dll
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\bin\Debug\FourDiceGame.pdb
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.csprojResolveAssemblyReference.cache
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.dll
+D:\GitHub\FourDice\FourDice\FourDiceGame.Test\obj\Debug\FourDiceGame.Test.pdb

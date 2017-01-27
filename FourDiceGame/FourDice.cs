@@ -15,7 +15,6 @@ namespace FourDiceGame
 
 
 		public GameState GameState;
-		public Player CurrentPlayer;
 
 		private TurnAction _lastTurnAction;
 
@@ -42,18 +41,18 @@ namespace FourDiceGame
 				// Determine the movement delta 
 				int movementDelta = die.Value;
 
-				if ( CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if ( GameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 				if ( turnAction.Direction == PieceMovementDirection.Backward ) {
 					movementDelta *= -1;
 				}
 
-				var defender = CurrentPlayer.Defenders[turnAction.PieceIndex.Value];
+				var defender = GameState.CurrentPlayer.Defenders[turnAction.PieceIndex.Value];
 
 				if ( defender.BoardPositionType == BoardPositionType.DefenderCircle ) {
 					defender.BoardPositionType = BoardPositionType.Lane;
-					defender.LanePosition = CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
+					defender.LanePosition = GameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
 					// Make the movement delta one closer to 0, as one movement was consumed.
 					if ( movementDelta > 0 ) {
 						movementDelta -= 1;
@@ -69,22 +68,22 @@ namespace FourDiceGame
 			else if ( turnAction.PieceType == PieceType.Attacker ) {
 				int movementDelta = die.Value;
 
-				if ( CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if (GameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 
-				var attacker = CurrentPlayer.Attackers[turnAction.PieceIndex.Value];
+				var attacker = GameState.CurrentPlayer.Attackers[turnAction.PieceIndex.Value];
 				if ( attacker.LanePosition == null ) {
 					// This piece hasn't moved. Set its initial lane position to the current player's goal.
 					attacker.BoardPositionType = BoardPositionType.Lane;
-					attacker.LanePosition = CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
+					attacker.LanePosition = GameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
 				}
 				// Now move it the apropriate number of places.
 				attacker.LanePosition += movementDelta;
 
 
-				if ( CurrentPlayer.PlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
-					|| CurrentPlayer.PlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
+				if (GameState.CurrentPlayer.PlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
+					|| GameState.CurrentPlayer.PlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
 					// The player has scored.
 					attacker.LanePosition = null;
 					attacker.BoardPositionType = BoardPositionType.OpponentGoal;
@@ -104,7 +103,7 @@ namespace FourDiceGame
 					+ this.GameState.Player2.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value );
 
 				if ( pieceCount == 3 ) {
-					Player playerToAffect = CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
+					Player playerToAffect = GameState.CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
 					foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
 						if ( attacker.LanePosition == newPlayerPosition.Value ) {
 							// Send this attack back. If there were two attackers here, we just send back 
@@ -124,7 +123,7 @@ namespace FourDiceGame
 			}
 			else {
 				_lastTurnAction = null;
-				CurrentPlayer = CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
+                GameState.CurrentPlayer = GameState.CurrentPlayer == GameState.Player1 ? GameState.Player2 : GameState.Player1;
 			}
 		}
 
@@ -233,8 +232,9 @@ namespace FourDiceGame
 	{
 		public Player Player1;
 		public Player Player2;
+        public Player CurrentPlayer;
 
-		public Die[] Dice;
+        public Die[] Dice;
 
 
 		public GameState( string player2AiName, string player1AiName = null )
