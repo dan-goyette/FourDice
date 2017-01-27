@@ -35,7 +35,7 @@ namespace FourDiceGame.AI
 					var copiedGameState = new GameState( "" );
 
 					gameState.CopyTo( copiedGameState );
-					FourDice.ApplyTurnActionToGameState( copiedGameState, turnAction, ref prevAction );
+					FourDice.ApplyTurnActionToGameState( copiedGameState, turnAction, prevAction );
 
 					var value = GameStateValue( copiedGameState );
 					if ( value > bestValue ) {

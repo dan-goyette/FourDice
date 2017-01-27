@@ -25,13 +25,25 @@ namespace FourDiceGame
 
 		public void ApplyTurnAction( TurnAction turnAction )
 		{
-			ApplyTurnActionToGameState( this.GameState, turnAction, ref this._lastTurnAction );
+			ApplyTurnActionToGameState( this.GameState, turnAction, _lastTurnAction );
+
+
+			// Set this to the last turn if this was the first turn, otherwise switch to the other player.
+			if ( _lastTurnAction == null ) {
+				_lastTurnAction = turnAction;
+			}
+			else {
+				_lastTurnAction = null;
+			}
 		}
 
 
-		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, ref TurnAction lastTurnAction )
+		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction )
 		{
-			ValidateTurnAction( turnAction, ref lastTurnAction );
+			string validationFailureReason = null;
+			if ( !ValidateTurnAction( gameState, turnAction, lastTurnAction, ref validationFailureReason ) ) {
+				throw new InvalidOperationException( "Validation failed: " + validationFailureReason );
+			}
 
 
 			// Apply the change
@@ -123,33 +135,30 @@ namespace FourDiceGame
 				}
 			}
 
-
-			// Set this to the last turn if this was the first turn, otherwise switch to the other player.
-			if ( lastTurnAction == null ) {
-				lastTurnAction = turnAction;
-			}
-			else {
-				lastTurnAction = null;
+			if ( lastTurnAction != null ) {
 				gameState.CurrentPlayerType = gameState.CurrentPlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
 			}
+
 		}
 
 
-		public static void ValidateTurnAction( TurnAction turnAction, ref TurnAction lastTurnAction )
+		public static bool ValidateTurnAction( GameState gateState, TurnAction turnAction, TurnAction lastTurnAction, ref string reason )
 		{
 			// Ensures that the chosen actions are reasonable given the state of the board. 
 
 			if ( lastTurnAction != null ) {
 				// Validate that if this is the second action, it is consistent with the previous action.
 				if ( lastTurnAction.DieIndex == turnAction.DieIndex ) {
-					throw new InvalidOperationException( string.Format( "The same DieIndex may not be chosen in both actions." ) );
+					reason = string.Format( "The same DieIndex may not be chosen in both actions." );
+					return false;
 				}
 
 				if ( lastTurnAction.PieceIndex.HasValue && turnAction.PieceIndex.HasValue
 					&& lastTurnAction.PieceType.HasValue && turnAction.PieceType.HasValue
 					&& lastTurnAction.PieceIndex.Value == turnAction.PieceIndex.Value
 					&& lastTurnAction.PieceType.Value == turnAction.PieceType.Value ) {
-					throw new InvalidOperationException( string.Format( "The same PieceIndex may not be chosen for the same PieceType in both actions." ) );
+					reason = string.Format( "The same PieceIndex may not be chosen for the same PieceType in both actions." );
+					return false;
 
 				}
 			}
@@ -157,12 +166,17 @@ namespace FourDiceGame
 			// Ensure that the action is internally consistent
 			if ( turnAction.PieceType == null || turnAction.PieceIndex == null || turnAction.Direction == null ) {
 				if ( turnAction.PieceType != null || turnAction.PieceIndex != null || turnAction.Direction != null ) {
-					throw new InvalidOperationException( string.Format( "If any of PieceType, PieceIndex, or Direction is null, all must be null." ) );
+					reason = string.Format( "If any of PieceType, PieceIndex, or Direction is null, all must be null." );
+					return false;
 				}
 			}
 
 
 			// Ensure that the action can be taken.
+
+
+
+			return true;
 
 		}
 
