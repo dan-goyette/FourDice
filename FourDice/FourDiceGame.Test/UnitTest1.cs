@@ -131,5 +131,16 @@ namespace FourDiceGame.Test
 		}
 
 
+
+		[TestMethod]
+		public void CopyGameStateTest()
+		{
+			var gameState = new GameState( "AI" );
+			gameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
+
+			var copiedGameState = gameState.GetCopy();
+
+			Assert.AreEqual( gameState.Player1.Attackers[0].BoardPositionType, copiedGameState.Player1.Attackers[0].BoardPositionType );
+		}
 	}
 }
