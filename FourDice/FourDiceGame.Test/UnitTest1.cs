@@ -34,9 +34,9 @@ namespace FourDiceGame.Test
 		[TestMethod]
 		public void TurnActionTest1()
 		{
-			fourDice.GameState.CurrentPlayer = fourDice.GameState.Player1;
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
 
-            fourDice.GameState.Dice[0].Value = 1;
+			fourDice.GameState.Dice[0].Value = 1;
 			fourDice.GameState.Dice[1].Value = 2;
 			fourDice.GameState.Dice[2].Value = 3;
 			fourDice.GameState.Dice[3].Value = 4;
@@ -52,7 +52,7 @@ namespace FourDiceGame.Test
 				fourDice.ApplyTurnAction( turn1 );
 
 
-				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.CurrentPlayer );
+				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsTrue( fourDice.GameState.Dice[0].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[1].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[2].IsChosen );
@@ -70,7 +70,7 @@ namespace FourDiceGame.Test
 				};
 				fourDice.ApplyTurnAction( turn2 );
 
-				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.CurrentPlayer );
+				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsTrue( fourDice.GameState.Dice[0].IsChosen );
 				Assert.IsTrue( fourDice.GameState.Dice[1].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[2].IsChosen );
@@ -99,7 +99,7 @@ namespace FourDiceGame.Test
 				fourDice.ApplyTurnAction( turn1 );
 
 
-				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.CurrentPlayer );
+				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsFalse( fourDice.GameState.Dice[0].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[1].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[2].IsChosen );
@@ -117,7 +117,7 @@ namespace FourDiceGame.Test
 				};
 				fourDice.ApplyTurnAction( turn2 );
 
-				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.CurrentPlayer );
+				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsFalse( fourDice.GameState.Dice[0].IsChosen );
 				Assert.IsFalse( fourDice.GameState.Dice[1].IsChosen );
 				Assert.IsTrue( fourDice.GameState.Dice[2].IsChosen );
@@ -138,7 +138,8 @@ namespace FourDiceGame.Test
 			var gameState = new GameState( "AI" );
 			gameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
 
-			var copiedGameState = gameState.GetCopy();
+			var copiedGameState = new GameState( "AI" );
+			gameState.CopyTo( copiedGameState );
 
 			Assert.AreEqual( gameState.Player1.Attackers[0].BoardPositionType, copiedGameState.Player1.Attackers[0].BoardPositionType );
 		}

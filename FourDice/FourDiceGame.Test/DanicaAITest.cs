@@ -24,7 +24,7 @@ namespace FourDiceGame.Test
         public void DanicasTest()
         {
             FourDice fourDice = new FourDice("danicaAI");
-            fourDice.GameState.CurrentPlayer = fourDice.GameState.Player1;
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
             fourDice.GameState.Dice[0].Value = 1;
             fourDice.GameState.Dice[1].Value = 2;
             fourDice.GameState.Dice[2].Value = 3;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace FourDiceGame
 {
@@ -42,24 +41,25 @@ namespace FourDiceGame
 			die.IsChosen = true;
 
 			// Move the piece, if applicable.
+			var currentPlayer = gameState.GetCurrentPlayer();
 
 			int? newPlayerPosition = null;
 			if ( turnAction.PieceType == PieceType.Defender ) {
 				// Determine the movement delta 
 				int movementDelta = die.Value;
 
-				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if ( gameState.CurrentPlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 				if ( turnAction.Direction == PieceMovementDirection.Backward ) {
 					movementDelta *= -1;
 				}
 
-				var defender = gameState.CurrentPlayer.Defenders[turnAction.PieceIndex.Value];
+				var defender = currentPlayer.Defenders[turnAction.PieceIndex.Value];
 
 				if ( defender.BoardPositionType == BoardPositionType.DefenderCircle ) {
 					defender.BoardPositionType = BoardPositionType.Lane;
-					defender.LanePosition = gameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
+					defender.LanePosition = gameState.CurrentPlayerType == PlayerType.Player1 ? Player1DefenderCircleLanePosition : Player2DefenderCircleLanePosition;
 					// Make the movement delta one closer to 0, as one movement was consumed.
 					if ( movementDelta > 0 ) {
 						movementDelta -= 1;
@@ -75,22 +75,22 @@ namespace FourDiceGame
 			else if ( turnAction.PieceType == PieceType.Attacker ) {
 				int movementDelta = die.Value;
 
-				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player2 ) {
+				if ( gameState.CurrentPlayerType == PlayerType.Player2 ) {
 					movementDelta *= -1;
 				}
 
-				var attacker = gameState.CurrentPlayer.Attackers[turnAction.PieceIndex.Value];
+				var attacker = currentPlayer.Attackers[turnAction.PieceIndex.Value];
 				if ( attacker.LanePosition == null ) {
 					// This piece hasn't moved. Set its initial lane position to the current player's goal.
 					attacker.BoardPositionType = BoardPositionType.Lane;
-					attacker.LanePosition = gameState.CurrentPlayer.PlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
+					attacker.LanePosition = gameState.CurrentPlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
 				}
 				// Now move it the apropriate number of places.
 				attacker.LanePosition += movementDelta;
 
 
-				if ( gameState.CurrentPlayer.PlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
-					|| gameState.CurrentPlayer.PlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
+				if ( gameState.CurrentPlayerType == PlayerType.Player1 && attacker.LanePosition == Player2GoalLanePosition
+					|| gameState.CurrentPlayerType == PlayerType.Player2 && attacker.LanePosition == Player1GoalLanePosition ) {
 					// The player has scored.
 					attacker.LanePosition = null;
 					attacker.BoardPositionType = BoardPositionType.OpponentGoal;
@@ -110,7 +110,7 @@ namespace FourDiceGame
 					+ gameState.Player2.Defenders.Count( a => a.LanePosition == newPlayerPosition.Value );
 
 				if ( pieceCount == 3 ) {
-					Player playerToAffect = gameState.CurrentPlayer == gameState.Player1 ? gameState.Player2 : gameState.Player1;
+					Player playerToAffect = gameState.GetCurrentPlayer();
 					foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
 						if ( attacker.LanePosition == newPlayerPosition.Value ) {
 							// Send this attack back. If there were two attackers here, we just send back 
@@ -130,7 +130,7 @@ namespace FourDiceGame
 			}
 			else {
 				lastTurnAction = null;
-				gameState.CurrentPlayer = gameState.CurrentPlayer == gameState.Player1 ? gameState.Player2 : gameState.Player1;
+				gameState.CurrentPlayerType = gameState.CurrentPlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
 			}
 		}
 
@@ -239,7 +239,7 @@ namespace FourDiceGame
 	{
 		public Player Player1;
 		public Player Player2;
-		public Player CurrentPlayer;
+		public PlayerType CurrentPlayerType;
 
 		public Die[] Dice;
 
@@ -263,11 +263,56 @@ namespace FourDiceGame
 			}
 		}
 
-		public GameState GetCopy()
+		public void CopyTo( GameState other )
 		{
-			return JsonConvert.DeserializeObject<GameState>( JsonConvert.SerializeObject( this ) );
+			if ( other == null ) {
+				other = new GameState( "" );
+			}
+
+
+			for ( var i = 0; i < this.Dice.Length; i++ ) {
+				other.Dice[i].Value = this.Dice[i].Value;
+				other.Dice[i].IsChosen = this.Dice[i].IsChosen;
+			}
+
+			for ( var i = 0; i < this.Player1.Attackers.Length; i++ ) {
+				other.Player1.Attackers[i].BoardPositionType = this.Player1.Attackers[i].BoardPositionType;
+				other.Player1.Attackers[i].LanePosition = this.Player1.Attackers[i].LanePosition;
+				other.Player1.Attackers[i].PieceType = this.Player1.Attackers[i].PieceType;
+			}
+
+			for ( var i = 0; i < this.Player1.Defenders.Length; i++ ) {
+				other.Player1.Defenders[i].BoardPositionType = this.Player1.Defenders[i].BoardPositionType;
+				other.Player1.Defenders[i].LanePosition = this.Player1.Defenders[i].LanePosition;
+				other.Player1.Defenders[i].PieceType = this.Player1.Defenders[i].PieceType;
+			}
+
+			other.Player1.PlayerType = this.Player1.PlayerType;
+			other.Player1.AIName = this.Player1.AIName;
+			other.Player1.PlayerControlType = this.Player1.PlayerControlType;
+
+			for ( var i = 0; i < this.Player2.Attackers.Length; i++ ) {
+				other.Player2.Attackers[i].BoardPositionType = this.Player2.Attackers[i].BoardPositionType;
+				other.Player2.Attackers[i].LanePosition = this.Player2.Attackers[i].LanePosition;
+				other.Player2.Attackers[i].PieceType = this.Player2.Attackers[i].PieceType;
+			}
+
+			for ( var i = 0; i < this.Player2.Defenders.Length; i++ ) {
+				other.Player2.Defenders[i].BoardPositionType = this.Player2.Defenders[i].BoardPositionType;
+				other.Player2.Defenders[i].LanePosition = this.Player2.Defenders[i].LanePosition;
+				other.Player2.Defenders[i].PieceType = this.Player2.Defenders[i].PieceType;
+			}
+
+			other.Player2.PlayerType = this.Player2.PlayerType;
+			other.Player2.AIName = this.Player2.AIName;
+			other.Player2.PlayerControlType = this.Player2.PlayerControlType;
 		}
 
+
+		public Player GetCurrentPlayer()
+		{
+			return this.CurrentPlayerType == PlayerType.Player1 ? Player1 : Player2;
+		}
 
 
 	}
