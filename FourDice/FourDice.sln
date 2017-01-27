@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2015
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDice", "FourDice.csproj", "{3819FF8A-34AD-6FB3-D6F8-7B32F8D408C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDice.Editor", "FourDice.Editor.csproj", "{4CBCE77B-FC44-4978-CE88-6046733A9FE7}"

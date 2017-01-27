@@ -63,12 +63,12 @@ namespace FourDiceGame
 		/// Evaluates whether the game is over, and that a given player has won.
 		/// </summary>
 		/// <returns></returns>
-		public GameEndResult GetGameEndResult()
+		public static GameEndResult GetGameEndResult( GameState gameState )
 		{
 			// See if player 1 wins
 			var player1Wins = true;
 			for ( var i = 0; i < 5; i++ ) {
-				if ( GameState.Player1.Attackers[i].BoardPositionType != BoardPositionType.OpponentGoal ) {
+				if ( gameState.Player1.Attackers[i].BoardPositionType != BoardPositionType.OpponentGoal ) {
 					player1Wins = false;
 					break;
 				}
@@ -83,7 +83,7 @@ namespace FourDiceGame
 			// See if player 2 wins
 			var player2Wins = true;
 			for ( var i = 0; i < 5; i++ ) {
-				if ( GameState.Player2.Attackers[i].BoardPositionType != BoardPositionType.OpponentGoal ) {
+				if ( gameState.Player2.Attackers[i].BoardPositionType != BoardPositionType.OpponentGoal ) {
 					player2Wins = false;
 					break;
 				}
@@ -120,7 +120,7 @@ namespace FourDiceGame
 
 			Dice = new Die[4];
 
-			for ( int i = 0; i < 5; i++ ) {
+			for ( int i = 0; i < 4; i++ ) {
 				Dice[i] = new Die();
 			}
 		}
@@ -148,6 +148,9 @@ namespace FourDiceGame
 		{
 			this.PlayerControlType = string.IsNullOrWhiteSpace( aiName ) ? PlayerControlType.Human : PlayerControlType.Computer;
 			this.AIName = aiName;
+			Attackers = new GamePiece[5];
+			Defenders = new GamePiece[2];
+			Initialize();
 		}
 
 		private void Initialize()
