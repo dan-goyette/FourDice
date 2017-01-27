@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FourDiceGame.AI;
+using System.Diagnostics;
 
 namespace FourDiceGame.Test
 {
@@ -42,7 +43,7 @@ namespace FourDiceGame.Test
                 {
                     nextMoves = danicaAI2.GetNextMoves(fourDice.GameState);
                 }
-                Console.WriteLine(nextMoves);
+                Debug.WriteLine(nextMoves);
 
                 fourDice.ApplyTurnAction(nextMoves[0]);
                 fourDice.ApplyTurnAction(nextMoves[1]);
