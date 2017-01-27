@@ -123,5 +123,85 @@ namespace FourDiceGame.Test
 
 			Assert.AreEqual( gameState.Player1.Attackers[0].BoardPositionType, copiedGameState.Player1.Attackers[0].BoardPositionType );
 		}
+
+		[TestMethod]
+		public void TurnValidationTest()
+		{
+
+			{
+				// Ensure you can pick the same two dice on each turn.
+				var gameState = new GameState( "AI" );				
+				TurnAction turnAction = new TurnAction( 0 );
+				TurnAction lastTurnAction = new TurnAction( 0 );
+				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
+				Assert.IsFalse( validationResult.IsValidAction );
+				Assert.IsNull( validationResult.NewBoardPositionType);
+				Assert.IsNull( validationResult.NewLanePosition );
+				Assert.IsNull( validationResult.PieceToMove );
+				Assert.AreEqual( "The same DieIndex may not be chosen in both actions.", validationResult.ValidationFailureReason );
+			}
+			
+			{
+				// Ensure the same piece can't be moved on both turns.
+				var gameState = new GameState( "AI" );
+				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker,0 );
+				TurnAction lastTurnAction = new TurnAction( 1 , PieceMovementDirection.Forward, PieceType.Attacker, 0 );
+				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
+				Assert.IsFalse( validationResult.IsValidAction );
+				Assert.IsNull( validationResult.NewBoardPositionType );
+				Assert.IsNull( validationResult.NewLanePosition );
+				Assert.IsNull( validationResult.PieceToMove );
+				Assert.AreEqual( "The same PieceIndex may not be chosen for the same PieceType in both actions.", validationResult.ValidationFailureReason );
+			}
+
+			{
+				// Ensure defenders can't move into the goal.
+				var gameState = new GameState( "AI" );
+				gameState.Dice[0].Value = 4;
+				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Backward, PieceType.Defender, 0 );
+				TurnAction lastTurnAction = null;
+				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
+				Assert.IsFalse( validationResult.IsValidAction );
+				Assert.IsNull( validationResult.NewBoardPositionType );
+				Assert.IsNull( validationResult.NewLanePosition );
+				Assert.IsNull( validationResult.PieceToMove );
+				Assert.AreEqual( "Defenders may not move into, or past, the goal.", validationResult.ValidationFailureReason );
+			}
+
+			{
+				// Ensure defenders can't leave their half of the board. 
+				var gameState = new GameState( "AI" );
+				gameState.Dice[0].Value = 5;
+				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Defender, 0 );
+				TurnAction lastTurnAction = null;
+				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
+				Assert.IsFalse( validationResult.IsValidAction );
+				Assert.IsNull( validationResult.NewBoardPositionType );
+				Assert.IsNull( validationResult.NewLanePosition );
+				Assert.IsNull( validationResult.PieceToMove );
+				Assert.AreEqual( "Defenders may not be moved into the opponent's half of the board.", validationResult.ValidationFailureReason );
+			}
+
+			{
+				// Ensure an attacker can't move into a space with two defenders in it. 
+				var gameState = new GameState( "AI" );
+				gameState.Dice[0].Value = 1;
+				gameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.Lane;
+				gameState.Player1.Defenders[0].LanePosition = 3;
+				gameState.Player1.Defenders[1].BoardPositionType = BoardPositionType.Lane;
+				gameState.Player1.Defenders[1].LanePosition = 3;
+				gameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.Lane;
+				gameState.Player1.Attackers[0].LanePosition = 2;
+				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
+				TurnAction lastTurnAction = null;
+				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
+				Assert.IsFalse( validationResult.IsValidAction );
+				Assert.IsNull( validationResult.NewBoardPositionType );
+				Assert.IsNull( validationResult.NewLanePosition );
+				Assert.IsNull( validationResult.PieceToMove );
+				Assert.AreEqual( "The selected location is already occupied by two of the player's pieces.", validationResult.ValidationFailureReason );
+			}
+
+		}
 	}
 }

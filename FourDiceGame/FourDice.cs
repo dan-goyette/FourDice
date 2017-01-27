@@ -166,8 +166,11 @@ namespace FourDiceGame
 						movementDelta += 1;
 					}
 				}
+				else {
+					newLanePosition = pieceToMove.LanePosition;
+				}
 
-				newLanePosition = newLanePosition + movementDelta;
+				newLanePosition += movementDelta;
 				newBoardPositionType = BoardPositionType.Lane;
 
 				if ( newLanePosition <= Player1GoalLanePosition || newLanePosition >= Player2GoalLanePosition ) {
@@ -221,9 +224,13 @@ namespace FourDiceGame
 					newBoardPositionType = BoardPositionType.Lane;
 					newLanePosition = gameState.CurrentPlayerType == PlayerType.Player1 ? Player1GoalLanePosition : Player2GoalLanePosition;
 				}
+				else {
+					newLanePosition = pieceToMove.LanePosition;
+				}
+
 				// Now move it the apropriate number of places.
 				newLanePosition += movementDelta;
-
+				newBoardPositionType = BoardPositionType.Lane;
 
 				if ( newLanePosition < Player1GoalLanePosition || newLanePosition > Player2GoalLanePosition ) {
 					return TurnActionValidationResult.Fail( "Attackers may not move or past the goal." );
