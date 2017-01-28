@@ -122,7 +122,7 @@ namespace FourDiceGame
 					int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
 
 					if ( pieceCount == 3 ) {
-						Player playerToAffect = gameState.GetCurrentPlayer();
+						Player playerToAffect = gameState.GetOtherPlayer();
 						for ( var attackerIndex = 0; attackerIndex < playerToAffect.Attackers.Length; attackerIndex++ ) {
 							var attacker = playerToAffect.Attackers[attackerIndex];
 							if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
@@ -131,25 +131,6 @@ namespace FourDiceGame
 								attacker.LanePosition = null;
 								attacker.BoardPositionType = BoardPositionType.OwnGoal;
 								retval.CapturedAttackerIndex = attackerIndex;
-								break;
-							}
-						}
-					}
-				}
-
-
-				// Determine whether any opponent pieces must be sent back.
-				if ( validationResult.PieceToMove.LanePosition.HasValue ) {
-					int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
-
-					if ( pieceCount == 3 ) {
-						Player playerToAffect = gameState.GetCurrentPlayer();
-						foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
-							if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
-								// Send this attack back. If there were two attackers here, we just send back 
-								// the first one, since it doesn't matter which moves back.
-								attacker.LanePosition = null;
-								attacker.BoardPositionType = BoardPositionType.OwnGoal;
 								break;
 							}
 						}
@@ -495,6 +476,12 @@ namespace FourDiceGame
 		{
 			return this.CurrentPlayerType == PlayerType.Player1 ? Player1 : Player2;
 		}
+
+		public Player GetOtherPlayer()
+		{
+			return this.CurrentPlayerType == PlayerType.Player1 ? Player2 : Player1;
+		}
+
 
 
 		public string GetPrettyState()
