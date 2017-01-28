@@ -15,14 +15,14 @@ namespace FourDiceGame.AI
 			this._playerType = playerType;
 		}
 
-		public TurnAction[] GetNextMoves( GameState gameState )
+		public TurnAction[] GetNextMoves( GameState originalGameState )
 		{
-            var copiedGameState = new GameState("");
-            gameState.CopyTo(copiedGameState);
+            var gameState = new GameState("");
+            originalGameState.CopyTo(gameState);
 
             var actions = new TurnAction[2];
-            actions[0] = GetNextMove(copiedGameState, null);
-            actions[1] = GetNextMove(copiedGameState, actions[0]);
+            actions[0] = GetNextMove(gameState, null);
+            actions[1] = GetNextMove(gameState, actions[0]);
             return actions;
 		}
 
@@ -38,47 +38,46 @@ namespace FourDiceGame.AI
                 if (gameState.Dice[dieIndex].IsChosen) continue;
                 for (var pieceIndex = 0; pieceIndex < player.Attackers.Length; pieceIndex++)
                 {
-                    gameState.CopyTo(copiedGameState);
-                    var turnAction = new TurnAction(dieIndex, PieceMovementDirection.Forward, PieceType.Attacker, pieceIndex);
-                    var validationResult = FourDice.ValidateTurnAction(copiedGameState, turnAction, prevAction);
-
-                    if (!validationResult.IsValidAction) continue;
-
-                    FourDice.ApplyTurnActionToGameState(copiedGameState, turnAction, prevAction);
-
-                    var value = GameStateValue(copiedGameState);
-                    if (value > bestValue)
-                    {
-                        bestAction = turnAction;
-                        bestValue = value;
-
-                    }
+                    DoActionThing(gameState, prevAction, copiedGameState, ref bestAction, ref bestValue, dieIndex, pieceIndex, PieceType.Attacker);
                 }
                 for (var pieceIndex = 0; pieceIndex < player.Defenders.Length; pieceIndex++)
                 {
-                    foreach (PieceMovementDirection direction in Enum.GetValues(typeof(PieceMovementDirection)))
-                    {
-                        gameState.CopyTo(copiedGameState);
-                        var turnAction = new TurnAction(dieIndex, direction, PieceType.Defender, pieceIndex);
-                        var validationResult = FourDice.ValidateTurnAction(copiedGameState, turnAction, prevAction);
-
-                        if (!validationResult.IsValidAction) continue;
-
-                        FourDice.ApplyTurnActionToGameState(copiedGameState, turnAction, prevAction);
-
-                        var value = GameStateValue(copiedGameState);
-                        if (value > bestValue)
-                        {
-                            bestAction = turnAction;
-                            bestValue = value;
-
-                        }
-                    }
+                    DoActionThing(gameState, prevAction, copiedGameState, ref bestAction, ref bestValue, dieIndex, pieceIndex, PieceType.Defender);
                 }
             }
             FourDice.ApplyTurnActionToGameState(gameState, bestAction, prevAction);
             return bestAction;
 
+        }
+
+        private void DoActionThing(GameState gameState, 
+            TurnAction prevAction, 
+            GameState copiedGameState, 
+            ref TurnAction bestAction, 
+            ref int bestValue, 
+            int dieIndex, 
+            int pieceIndex,
+            PieceType pieceType)
+        {
+            foreach (PieceMovementDirection direction in Enum.GetValues(typeof(PieceMovementDirection)))
+            {
+                if (pieceType == PieceType.Attacker && direction == PieceMovementDirection.Backward) continue;
+                gameState.CopyTo(copiedGameState);
+                var turnAction = new TurnAction(dieIndex, direction, pieceType, pieceIndex);
+                var validationResult = FourDice.ValidateTurnAction(copiedGameState, turnAction, prevAction);
+
+                if (!validationResult.IsValidAction) continue;
+
+                FourDice.ApplyTurnActionToGameState(copiedGameState, turnAction, prevAction);
+
+                var value = GameStateValue(copiedGameState);
+                if (value > bestValue)
+                {
+                    bestAction = turnAction;
+                    bestValue = value;
+
+                }
+            }
         }
 
         private Player getMyPlayer( GameState gameState )

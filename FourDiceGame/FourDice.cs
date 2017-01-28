@@ -420,6 +420,11 @@ namespace FourDiceGame
 			return this.CurrentPlayerType == PlayerType.Player1 ? Player1 : Player2;
 		}
 
+        public string PrettyPrint()
+        {
+            return string.Format("");
+        }
+
 
 
 		public string GetPrettyState()
@@ -544,8 +549,6 @@ namespace FourDiceGame
 		public void Roll()
 		{
 			Value = FourDiceUtils.Random.Next( 1, 7 );
-			Debug.WriteLine( Value );
-
 		}
 		public bool IsChosen;
 	}
