@@ -13,21 +13,34 @@ namespace FourDiceGame.Test
     [TestClass]
     public class DanicaAITest
     {
-        Danica danicaAI1;
-        Danica danicaAI2;
+        AIBase danicaAI1;
+        AIBase danicaAI2;
 
         [TestInitialize]
         public void TestInit()
         {
-            danicaAI1 = new Danica(PlayerType.Player1);
-            danicaAI2 = new Danica(PlayerType.Player2);
+            danicaAI1 = new AIBase(PlayerType.Player1);
+            danicaAI2 = new DefenderAI(PlayerType.Player2);
         }
 
         [TestMethod]
         public void DanicasTest()
         {
+            var player1Wins = 0;
+            for(var i = 0; i < 100; i++)
+            {
+                if (PlayAGame(danicaAI1, danicaAI2))
+                    player1Wins++;
+            }
+
+            Debug.WriteLine("Player 1 wins " + player1Wins);
+        }
+
+        public bool PlayAGame (AIBase AI1, AIBase AI2)
+        {
             FourDice fourDice = new FourDice("danicaAI");
-			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
+            fourDice.RollToSeeWhoGoesFirst();
+            fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
             /*fourDice.GameState.Dice[0].Value = 1;
             fourDice.GameState.Dice[1].Value = 2;
             fourDice.GameState.Dice[2].Value = 3;
@@ -39,16 +52,19 @@ namespace FourDiceGame.Test
                 if (fourDice.GameState.CurrentPlayerType == PlayerType.Player1)
                 {
                     nextMoves = danicaAI1.GetNextMoves(fourDice.GameState);
-                } else
+                }
+                else
                 {
                     nextMoves = danicaAI2.GetNextMoves(fourDice.GameState);
                 }
-                Debug.WriteLine(nextMoves);
 
                 fourDice.ApplyTurnAction(nextMoves[0]);
                 fourDice.ApplyTurnAction(nextMoves[1]);
                 fourDice.RerollDice();
             }
+            var winner = FourDice.GetGameEndResult(fourDice.GameState).WinningPlayer;
+            //Debug.WriteLine("WINNER!! " + winner);
+            return winner == PlayerType.Player1;
         }
     }
 }

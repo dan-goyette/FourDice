@@ -69,28 +69,27 @@ namespace FourDiceGame
 					validationResult.PieceToMove.BoardPositionType = BoardPositionType.OpponentGoal;
 					validationResult.PieceToMove.LanePosition = null;
 				}
-			}
 
+			    // Determine whether any opponent pieces must be sent back.
+			    if ( validationResult.PieceToMove.LanePosition.HasValue ) {
+				    int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
 
-			// Determine whether any opponent pieces must be sent back.
-			if ( validationResult.PieceToMove.LanePosition.HasValue ) {
-				int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
+				    if ( pieceCount == 3 ) {
+					    Player playerToAffect = gameState.GetCurrentPlayer();
+					    foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
+						    if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
+							    // Send this attack back. If there were two attackers here, we just send back 
+							    // the first one, since it doesn't matter which moves back.
+							    attacker.LanePosition = null;
+							    attacker.BoardPositionType = BoardPositionType.OwnGoal;
+							    break;
+						    }
+					    }
+				    }
+                }
+            }
 
-				if ( pieceCount == 3 ) {
-					Player playerToAffect = gameState.GetCurrentPlayer();
-					foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
-						if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
-							// Send this attack back. If there were two attackers here, we just send back 
-							// the first one, since it doesn't matter which moves back.
-							attacker.LanePosition = null;
-							attacker.BoardPositionType = BoardPositionType.OwnGoal;
-							break;
-						}
-					}
-				}
-			}
-
-			if ( lastTurnAction != null ) {
+            if ( lastTurnAction != null ) {
 				gameState.CurrentPlayerType = gameState.CurrentPlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
 			}
 
@@ -372,6 +371,7 @@ namespace FourDiceGame
 				other = new GameState( "" );
 			}
 
+            other.CurrentPlayerType = this.CurrentPlayerType;
 
 			for ( var i = 0; i < this.Dice.Length; i++ ) {
 				other.Dice[i].Value = this.Dice[i].Value;
