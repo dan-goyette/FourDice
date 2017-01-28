@@ -110,6 +110,11 @@ namespace FourDiceGame.Test
 
 			}
 
+
+			foreach ( var logEntry in fourDice.GameLog ) {
+				Debug.WriteLine( logEntry );
+			}
+
 		}
 
 

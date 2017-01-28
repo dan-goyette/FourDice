@@ -31,7 +31,10 @@ namespace FourDiceGame
 
 		public void ApplyTurnAction( TurnAction turnAction )
 		{
-			int? capturedAttackerIndex = null;
+			if ( turnAction == null ) {
+				return;
+			}
+
 
 			var gameLogEntry = new GameLogEntry();
 			var player = this.GameState.GetCurrentPlayer();
@@ -52,7 +55,8 @@ namespace FourDiceGame
 				}
 			}
 
-			ApplyTurnActionToGameState( this.GameState, turnAction, _lastTurnAction, out capturedAttackerIndex );
+			var applyResult = ApplyTurnActionToGameState( this.GameState, turnAction, _lastTurnAction );
+
 			if ( turnAction.PieceType.HasValue ) {
 				if ( turnAction.PieceType == PieceType.Attacker ) {
 					gameLogEntry.FinalBoardPositionType = player.Attackers[turnAction.PieceIndex.Value].BoardPositionType;
@@ -63,8 +67,7 @@ namespace FourDiceGame
 					gameLogEntry.FinalLanePosition = player.Defenders[turnAction.PieceIndex.Value].LanePosition;
 				}
 			}
-
-			gameLogEntry.CapturedAttackerIndex = capturedAttackerIndex;
+			gameLogEntry.CapturedAttackerIndex = applyResult.CapturedAttackerIndex;
 
 
 			this.GameLog.Add( gameLogEntry );
@@ -80,9 +83,9 @@ namespace FourDiceGame
 		}
 
 
-		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction, out int? capturedAttackerIndex )
+		public static TurnActionAppliedResult ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction )
 		{
-			capturedAttackerIndex = null;
+			var retval = new TurnActionAppliedResult();
 
 			var validationResult = ValidateTurnAction( gameState, turnAction, lastTurnAction );
 			if ( !validationResult.IsValidAction ) {
@@ -110,33 +113,56 @@ namespace FourDiceGame
 					validationResult.PieceToMove.BoardPositionType = BoardPositionType.OpponentGoal;
 					validationResult.PieceToMove.LanePosition = null;
 				}
-			}
 
 
-			// Determine whether any opponent pieces must be sent back.
-			if ( validationResult.PieceToMove.LanePosition.HasValue ) {
-				int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
 
-				if ( pieceCount == 3 ) {
-					Player playerToAffect = gameState.GetCurrentPlayer();
-					for ( var attackerIndex = 0; attackerIndex < playerToAffect.Attackers.Length; attackerIndex++ ) {
-						var attacker = playerToAffect.Attackers[attackerIndex];
-						if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
-							// Send this attack back. If there were two attackers here, we just send back 
-							// the first one, since it doesn't matter which moves back.
-							attacker.LanePosition = null;
-							attacker.BoardPositionType = BoardPositionType.OwnGoal;
-							capturedAttackerIndex = attackerIndex;
-							break;
+
+				// Determine whether any opponent pieces must be sent back.
+				if ( validationResult.PieceToMove.LanePosition.HasValue ) {
+					int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
+
+					if ( pieceCount == 3 ) {
+						Player playerToAffect = gameState.GetCurrentPlayer();
+						for ( var attackerIndex = 0; attackerIndex < playerToAffect.Attackers.Length; attackerIndex++ ) {
+							var attacker = playerToAffect.Attackers[attackerIndex];
+							if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
+								// Send this attack back. If there were two attackers here, we just send back 
+								// the first one, since it doesn't matter which moves back.
+								attacker.LanePosition = null;
+								attacker.BoardPositionType = BoardPositionType.OwnGoal;
+								retval.CapturedAttackerIndex = attackerIndex;
+								break;
+							}
+						}
+					}
+				}
+
+
+				// Determine whether any opponent pieces must be sent back.
+				if ( validationResult.PieceToMove.LanePosition.HasValue ) {
+					int pieceCount = GetGamePiecesAtLanePosition( gameState, validationResult.PieceToMove.LanePosition.Value ).Count();
+
+					if ( pieceCount == 3 ) {
+						Player playerToAffect = gameState.GetCurrentPlayer();
+						foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
+							if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
+								// Send this attack back. If there were two attackers here, we just send back 
+								// the first one, since it doesn't matter which moves back.
+								attacker.LanePosition = null;
+								attacker.BoardPositionType = BoardPositionType.OwnGoal;
+								break;
+							}
 						}
 					}
 				}
 			}
 
+
 			if ( lastTurnAction != null ) {
 				gameState.CurrentPlayerType = gameState.CurrentPlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
 			}
 
+			return retval;
 		}
 
 		public static IEnumerable<GamePiece> GetGamePiecesAtLanePosition( GameState gameState, int lanePosition )
@@ -380,6 +406,11 @@ namespace FourDiceGame
 	}
 
 
+	public class TurnActionAppliedResult
+	{
+		public int? CapturedAttackerIndex;
+	}
+
 	[Serializable]
 	public class GameState
 	{
@@ -414,6 +445,8 @@ namespace FourDiceGame
 			if ( other == null ) {
 				other = new GameState( "" );
 			}
+
+			other.CurrentPlayerType = this.CurrentPlayerType;
 
 			for ( var i = 0; i < this.Dice.Length; i++ ) {
 				other.Dice[i].Value = this.Dice[i].Value;
@@ -667,7 +700,21 @@ namespace FourDiceGame
 
 		public override string ToString()
 		{
-			return base.ToString();
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append( string.Format( "{0} - Claims die {1}:{2}. ", PlayerType, DieIndex, DieValue ) );
+			if ( PieceType.HasValue ) {
+				sb.Append( string.Format( "{0}[{1}] moves from {2} to {3}", PieceType,
+					PieceIndex,
+					InitialBoardPositionType == BoardPositionType.Lane ? InitialLanePosition.ToString() : InitialBoardPositionType.ToString(),
+					FinalBoardPositionType == BoardPositionType.Lane ? FinalLanePosition.ToString() : FinalBoardPositionType.ToString() ) );
+
+				if ( CapturedAttackerIndex.HasValue ) {
+					sb.Append( string.Format( " (Captured Attacker[{0}])", CapturedAttackerIndex ) );
+				}
+			}
+
+			return sb.ToString();
 		}
 	}
 }
