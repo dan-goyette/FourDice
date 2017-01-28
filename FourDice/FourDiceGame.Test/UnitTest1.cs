@@ -132,6 +132,12 @@ namespace FourDiceGame.Test
 		{
 
 			{
+				// Ensure an empty die selection is valid.
+				var gameState = new GameState( "AI" );
+				TurnAction turnAction = new TurnAction( 0 );
+			}
+
+			{
 				// Ensure you can pick the same two dice on each turn.
 				var gameState = new GameState( "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
