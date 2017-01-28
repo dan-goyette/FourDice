@@ -370,9 +370,9 @@ namespace FourDiceGame
 			if ( other == null ) {
 				other = new GameState( "" );
 			}
-
+            
             other.CurrentPlayerType = this.CurrentPlayerType;
-
+            
 			for ( var i = 0; i < this.Dice.Length; i++ ) {
 				other.Dice[i].Value = this.Dice[i].Value;
 				other.Dice[i].IsChosen = this.Dice[i].IsChosen;
@@ -421,12 +421,54 @@ namespace FourDiceGame
 			return this.CurrentPlayerType == PlayerType.Player1 ? Player1 : Player2;
 		}
 
-        public string PrettyPrint()
-        {
-            return string.Format("");
-        }
+
+		public string GetPrettyState()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine( string.Format( "Current Player: {0}", this.CurrentPlayerType ) );
+			sb.Append( "Dice: " );
+			List<string> diceValues = new List<string>();
+			for ( int i = 0; i < Dice.Length; i++ ) {
+				diceValues.Add( string.Format( "{0}:{1}{2}", i, Dice[i].Value, Dice[i].IsChosen ? "*" : "" ) );
+			}
+			sb.AppendLine( string.Join( ", ", diceValues ) );
 
 
+			Action<Player> printPlayerStats = ( player ) => {
+				sb.AppendLine( string.Format( "{0}: ", player.PlayerType ) );
+				sb.AppendLine( string.Format( "  Defenders: " ) );
+				for ( var i = 0; i < player.Defenders.Length; i++ ) {
+					sb.AppendLine( string.Format( "    {0}: BPT: {1}; Position: {2}",
+						i,
+						player.Defenders[i].BoardPositionType,
+						player.Defenders[i].LanePosition ) );
+				}
+				sb.AppendLine( string.Format( "  Attackers: " ) );
+				for ( var i = 0; i < player.Attackers.Length; i++ ) {
+					sb.AppendLine( string.Format( "    {0}: BPT: {1}; Position: {2}",
+						i,
+						player.Attackers[i].BoardPositionType,
+						player.Attackers[i].LanePosition ) );
+				}
+			};
+
+			printPlayerStats( this.Player1 );
+			printPlayerStats( this.Player2 );
+
+			return sb.ToString();
+
+			// Current Player: CurrentPlayerType
+			// Dice: 0-X*, 
+			// Player1: 
+			//   Defender[0]:
+			//   Defender[1]:
+			//   Attacker[0]:
+			//   Attacker[1]:
+			//   Attacker[2]:
+			//   Attacker[3]:
+			//   Attacker[4]:
+
+		}
 	}
 
 

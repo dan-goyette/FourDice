@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FourDiceGame.Test
@@ -131,6 +132,12 @@ namespace FourDiceGame.Test
 		{
 
 			{
+				// Ensure an empty die selection is valid.
+				var gameState = new GameState( "AI" );
+				TurnAction turnAction = new TurnAction( 0 );
+			}
+
+			{
 				// Ensure you can pick the same two dice on each turn.
 				var gameState = new GameState( "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
@@ -141,6 +148,8 @@ namespace FourDiceGame.Test
 				Assert.IsNull( validationResult.NewLanePosition );
 				Assert.IsNull( validationResult.PieceToMove );
 				Assert.AreEqual( "The same DieIndex may not be chosen in both actions.", validationResult.ValidationFailureReason );
+
+				Debug.WriteLine( gameState.GetPrettyState() );
 			}
 
 			{
