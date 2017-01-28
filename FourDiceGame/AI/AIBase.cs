@@ -9,8 +9,11 @@ namespace FourDiceGame.AI
 {
 	public class AIBase : IFourDiceAI
 	{
-		private PlayerType _playerType;
-		public AIBase( PlayerType playerType )
+		protected PlayerType _playerType;
+        protected TurnAction[] bestActions = new TurnAction[2];
+        protected int bestValue = -10000;
+
+        public AIBase( PlayerType playerType )
 		{
 			this._playerType = playerType;
 		}
@@ -19,29 +22,31 @@ namespace FourDiceGame.AI
 		{
             var gameState = new GameState("");
             originalGameState.CopyTo(gameState);
-            
+
+            bestActions = new TurnAction[2];
+            bestValue = -10000;
+
             return GetNextMove(gameState, null);
 		}
 
         protected TurnAction[] GetNextMove(GameState gameState, TurnAction prevAction)
         {
-            var player = getMyPlayer(gameState);
             var copiedGameState = new GameState("");
+            gameState.CopyTo(copiedGameState);
 
-            var bestActions = new TurnAction[2];
-            int bestValue = -10000;
+            var player = getMyPlayer(gameState);
             for (var dieIndex = 0; dieIndex < 4; dieIndex++)
             {
                 if (gameState.Dice[dieIndex].IsChosen) continue;
                 for (var pieceIndex = 0; pieceIndex < player.Attackers.Length; pieceIndex++)
                 {
-                    checkValueofAction(gameState, prevAction, copiedGameState, ref bestActions, ref bestValue, dieIndex, pieceIndex, PieceType.Attacker);
+                    checkValueofAction(gameState, prevAction, copiedGameState, dieIndex, pieceIndex, PieceType.Attacker);
                 }
                 for (var pieceIndex = 0; pieceIndex < player.Defenders.Length; pieceIndex++)
                 {
-                    checkValueofAction(gameState, prevAction, copiedGameState, ref bestActions, ref bestValue, dieIndex, pieceIndex, PieceType.Defender);
+                    checkValueofAction(gameState, prevAction, copiedGameState, dieIndex, pieceIndex, PieceType.Defender);
                 }
-                checkValueofAction(gameState, prevAction, copiedGameState, ref bestActions, ref bestValue, dieIndex);
+                checkValueofAction(gameState, prevAction, copiedGameState, dieIndex);
             }
             if (bestActions[0] == null)
             {
@@ -54,9 +59,7 @@ namespace FourDiceGame.AI
 
         protected void checkValueofAction(GameState gameState, 
             TurnAction prevAction, 
-            GameState copiedGameState, 
-            ref TurnAction[] bestActions, 
-            ref int bestValue, 
+            GameState copiedGameState,
             int dieIndex, 
             int? pieceIndex = null,
             PieceType? pieceType = null)
@@ -107,9 +110,9 @@ namespace FourDiceGame.AI
             return _playerType == PlayerType.Player1 ? gameState.Player2 : gameState.Player1;
         }
 
-        protected int positionValue(int position)
+        protected int PositionValue(int position)
         {
-            return _playerType == PlayerType.Player1 ? position : 11 - position;
+            return _playerType == PlayerType.Player1 ? position : FourDice.Player2GoalLanePosition - position;
         }
 
         protected virtual int GameStateValue( GameState gameState )
@@ -121,10 +124,18 @@ namespace FourDiceGame.AI
 					value += 20;
 				}
 				else if ( piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null ) {
-					value += positionValue( piece.LanePosition.Value );
+                    var positionValue = PositionValue(piece.LanePosition.Value);
+                    if (positionValue > 6 )
+                    {
+                        value += 10;
+                    }
+                    else
+                    {
+                        value += positionValue;
+                    }
 				}
 			}
-            //Debug.WriteLine(_playerType + value);
+            //Debug.WriteLine(string.Format("{0} {1}",_playerType,  value));
 			return value;
 		}
 	}

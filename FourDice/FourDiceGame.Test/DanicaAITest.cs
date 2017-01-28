@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FourDiceGame.AI;
 using System.Diagnostics;
+using System.Linq;
 
 namespace FourDiceGame.Test
 {
@@ -15,6 +16,7 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
+        int numberOfGames = 1;
 
 		[TestInitialize]
 		public void TestInit()
@@ -27,7 +29,7 @@ namespace FourDiceGame.Test
 		public void DanicasTest()
 		{
 			var player1Wins = 0;
-			for ( var i = 0; i < 100; i++ ) {
+			for ( var i = 0; i < numberOfGames; i++ ) {
 				if ( PlayAGame( danicaAI1, danicaAI2 ) )
 					player1Wins++;
 			}
@@ -59,8 +61,20 @@ namespace FourDiceGame.Test
 				fourDice.RerollDice();
 			}
 			var winner = FourDice.GetGameEndResult( fourDice.GameState ).WinningPlayer;
-			//Debug.WriteLine("WINNER!! " + winner);
-			return winner == PlayerType.Player1;
+            if (numberOfGames == 1)
+            {
+                Debug.WriteLine("WINNER!! " + winner);
+
+                foreach (var logEntry in fourDice.GameLog)
+                {
+                    Debug.WriteLine(logEntry);
+                }
+                var p1Captures = fourDice.GameLog.Where(l => l.PlayerType == PlayerType.Player1).Count(l => l.CapturedAttackerIndex != null);
+                var p2Captures = fourDice.GameLog.Where(l => l.PlayerType == PlayerType.Player2).Count(l => l.CapturedAttackerIndex != null);
+                Debug.WriteLine(string.Format("player 1 captured: {0}\nplayer 2 captured: {1}", p1Captures, p2Captures));
+                Debug.WriteLine(fourDice.GameState.GetPrettyState());
+            }
+            return winner == PlayerType.Player1;
 		}
 	}
 }
