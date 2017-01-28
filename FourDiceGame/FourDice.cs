@@ -19,16 +19,55 @@ namespace FourDiceGame
 
 		public GameState GameState;
 
+		public List<GameLogEntry> GameLog;
+
 		private TurnAction _lastTurnAction;
 
 		public FourDice( string player2AiName, string player1AiName = null )
 		{
 			this.GameState = new GameState( player2AiName, player1AiName: player1AiName );
+			this.GameLog = new List<GameLogEntry>();
 		}
 
 		public void ApplyTurnAction( TurnAction turnAction )
 		{
-			ApplyTurnActionToGameState( this.GameState, turnAction, _lastTurnAction );
+			int? capturedAttackerIndex = null;
+
+			var gameLogEntry = new GameLogEntry();
+			var player = this.GameState.GetCurrentPlayer();
+			gameLogEntry.DieIndex = turnAction.DieIndex;
+			gameLogEntry.DieValue = this.GameState.Dice[turnAction.DieIndex].Value;
+			gameLogEntry.PieceIndex = turnAction.PieceIndex;
+			gameLogEntry.PieceType = turnAction.PieceType;
+			gameLogEntry.PlayerType = this.GameState.CurrentPlayerType;
+
+			if ( turnAction.PieceType.HasValue ) {
+				if ( turnAction.PieceType == PieceType.Attacker ) {
+					gameLogEntry.InitialBoardPositionType = player.Attackers[turnAction.PieceIndex.Value].BoardPositionType;
+					gameLogEntry.InitialLanePosition = player.Attackers[turnAction.PieceIndex.Value].LanePosition;
+				}
+				else if ( turnAction.PieceType == PieceType.Defender ) {
+					gameLogEntry.InitialBoardPositionType = player.Defenders[turnAction.PieceIndex.Value].BoardPositionType;
+					gameLogEntry.InitialLanePosition = player.Defenders[turnAction.PieceIndex.Value].LanePosition;
+				}
+			}
+
+			ApplyTurnActionToGameState( this.GameState, turnAction, _lastTurnAction, out capturedAttackerIndex );
+			if ( turnAction.PieceType.HasValue ) {
+				if ( turnAction.PieceType == PieceType.Attacker ) {
+					gameLogEntry.FinalBoardPositionType = player.Attackers[turnAction.PieceIndex.Value].BoardPositionType;
+					gameLogEntry.FinalLanePosition = player.Attackers[turnAction.PieceIndex.Value].LanePosition;
+				}
+				else if ( turnAction.PieceType == PieceType.Defender ) {
+					gameLogEntry.FinalBoardPositionType = player.Defenders[turnAction.PieceIndex.Value].BoardPositionType;
+					gameLogEntry.FinalLanePosition = player.Defenders[turnAction.PieceIndex.Value].LanePosition;
+				}
+			}
+
+			gameLogEntry.CapturedAttackerIndex = capturedAttackerIndex;
+
+
+			this.GameLog.Add( gameLogEntry );
 
 
 			// Set this to the last turn if this was the first turn, otherwise switch to the other player.
@@ -41,8 +80,10 @@ namespace FourDiceGame
 		}
 
 
-		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction )
+		public static void ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction, out int? capturedAttackerIndex )
 		{
+			capturedAttackerIndex = null;
+
 			var validationResult = ValidateTurnAction( gameState, turnAction, lastTurnAction );
 			if ( !validationResult.IsValidAction ) {
 				throw new InvalidOperationException( "Validation failed: " + validationResult.ValidationFailureReason );
@@ -78,12 +119,14 @@ namespace FourDiceGame
 
 				if ( pieceCount == 3 ) {
 					Player playerToAffect = gameState.GetCurrentPlayer();
-					foreach ( var attacker in playerToAffect.Attackers.ToList() ) {
+					for ( var attackerIndex = 0; attackerIndex < playerToAffect.Attackers.Length; attackerIndex++ ) {
+						var attacker = playerToAffect.Attackers[attackerIndex];
 						if ( attacker.LanePosition == validationResult.PieceToMove.LanePosition.Value ) {
 							// Send this attack back. If there were two attackers here, we just send back 
 							// the first one, since it doesn't matter which moves back.
 							attacker.LanePosition = null;
 							attacker.BoardPositionType = BoardPositionType.OwnGoal;
+							capturedAttackerIndex = attackerIndex;
 							break;
 						}
 					}
@@ -605,6 +648,26 @@ namespace FourDiceGame
 				NewLanePosition = newLanePosition,
 				NewBoardPositionType = newBoardPositionType
 			};
+		}
+	}
+
+
+	public class GameLogEntry
+	{
+		public PlayerType PlayerType;
+		public int DieIndex;
+		public int DieValue;
+		public PieceType? PieceType;
+		public int? PieceIndex;
+		public int? CapturedAttackerIndex;
+		public BoardPositionType? InitialBoardPositionType;
+		public BoardPositionType? FinalBoardPositionType;
+		public int? InitialLanePosition;
+		public int? FinalLanePosition;
+
+		public override string ToString()
+		{
+			return base.ToString();
 		}
 	}
 }
