@@ -43,6 +43,10 @@ namespace FourDiceGame
 			gameLogEntry.PieceIndex = turnAction.PieceIndex;
 			gameLogEntry.PieceType = turnAction.PieceType;
 			gameLogEntry.PlayerType = this.GameState.CurrentPlayerType;
+			gameLogEntry.DiceValues[0] = this.GameState.Dice[0].Value;
+			gameLogEntry.DiceValues[1] = this.GameState.Dice[1].Value;
+			gameLogEntry.DiceValues[2] = this.GameState.Dice[2].Value;
+			gameLogEntry.DiceValues[3] = this.GameState.Dice[3].Value;
 
 			if ( turnAction.PieceType.HasValue ) {
 				if ( turnAction.PieceType == PieceType.Attacker ) {
@@ -674,9 +678,14 @@ namespace FourDiceGame
 
 	public class GameLogEntry
 	{
+		public GameLogEntry()
+		{
+			DiceValues = new Dictionary<int, int>();
+		}
 		public PlayerType PlayerType;
 		public int DieIndex;
 		public int DieValue;
+		public Dictionary<int, int> DiceValues;
 		public PieceType? PieceType;
 		public int? PieceIndex;
 		public int? CapturedAttackerIndex;
@@ -689,9 +698,20 @@ namespace FourDiceGame
 		{
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append( string.Format( "{0} - Claims die {1}:{2}. ", PlayerType, DieIndex, DieValue ) );
+
+			sb.Append( string.Format( "{0} - ", PlayerType ) );
+
+			for ( int dieIndex = 0; dieIndex < 4; dieIndex++ ) {
+				if ( dieIndex == DieIndex ) {
+					sb.AppendFormat( "({0})", DiceValues[dieIndex] );
+				}
+				else {
+					sb.Append( DiceValues[dieIndex] );
+				}
+			}
+
 			if ( PieceType.HasValue ) {
-				sb.Append( string.Format( "{0}[{1}] moves from {2} to {3}", PieceType,
+				sb.Append( string.Format( " {0}[{1}] moves from {2} to {3}", PieceType,
 					PieceIndex,
 					InitialBoardPositionType == BoardPositionType.Lane ? InitialLanePosition.ToString() : InitialBoardPositionType.ToString(),
 					FinalBoardPositionType == BoardPositionType.Lane ? FinalLanePosition.ToString() : FinalBoardPositionType.ToString() ) );
