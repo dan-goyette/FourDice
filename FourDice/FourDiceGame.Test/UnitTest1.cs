@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FourDiceGame.Test
@@ -141,6 +142,8 @@ namespace FourDiceGame.Test
 				Assert.IsNull( validationResult.NewLanePosition );
 				Assert.IsNull( validationResult.PieceToMove );
 				Assert.AreEqual( "The same DieIndex may not be chosen in both actions.", validationResult.ValidationFailureReason );
+
+				Debug.WriteLine( gameState.GetPrettyState() );
 			}
 
 			{
