@@ -43,11 +43,13 @@ namespace FourDiceGame.Test
 			fourDice.GameState.Dice[2].Value = 3;
 			fourDice.GameState.Dice[3].Value = 4;
 
+			Debug.WriteLine( fourDice.GameState.GetAsciiState() );
+
 
 			{
 				var turn1 = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Defender, 0 );
-				fourDice.ApplyTurnAction( turn1 );
-
+				Debug.WriteLine( fourDice.ApplyTurnAction( turn1 ) );
+				Debug.WriteLine( fourDice.GameState.GetAsciiState() );
 
 				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsTrue( fourDice.GameState.Dice[0].IsChosen );
@@ -60,7 +62,8 @@ namespace FourDiceGame.Test
 
 
 				var turn2 = new TurnAction( 1, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
-				fourDice.ApplyTurnAction( turn2 );
+				Debug.WriteLine( fourDice.ApplyTurnAction( turn2 ) );
+				Debug.WriteLine( fourDice.GameState.GetAsciiState() );
 
 				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsTrue( fourDice.GameState.Dice[0].IsChosen );
@@ -83,7 +86,8 @@ namespace FourDiceGame.Test
 			{
 
 				var turn1 = new TurnAction( 3, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
-				fourDice.ApplyTurnAction( turn1 );
+				Debug.WriteLine( fourDice.ApplyTurnAction( turn1 ) );
+				Debug.WriteLine( fourDice.GameState.GetAsciiState() );
 
 
 				Assert.AreEqual( fourDice.GameState.Player2, fourDice.GameState.GetCurrentPlayer() );
@@ -97,7 +101,8 @@ namespace FourDiceGame.Test
 
 
 				var turn2 = new TurnAction( 2, PieceMovementDirection.Forward, PieceType.Attacker, 1 );
-				fourDice.ApplyTurnAction( turn2 );
+				Debug.WriteLine( fourDice.ApplyTurnAction( turn2 ) );
+				Debug.WriteLine( fourDice.GameState.GetAsciiState() );
 
 				Assert.AreEqual( fourDice.GameState.Player1, fourDice.GameState.GetCurrentPlayer() );
 				Assert.IsFalse( fourDice.GameState.Dice[0].IsChosen );
@@ -109,12 +114,6 @@ namespace FourDiceGame.Test
 				Assert.AreEqual( FourDice.Player2GoalLanePosition - fourDice.GameState.Dice[2].Value, fourDice.GameState.Player2.Attackers[1].LanePosition );
 
 			}
-
-
-			foreach ( var logEntry in fourDice.GameLog ) {
-				Debug.WriteLine( logEntry );
-			}
-
 		}
 
 
