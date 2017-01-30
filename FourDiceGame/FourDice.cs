@@ -29,13 +29,8 @@ namespace FourDiceGame
 			this.GameLog = new List<GameLogEntry>();
 		}
 
-		public void ApplyTurnAction( TurnAction turnAction )
+		public GameLogEntry ApplyTurnAction( TurnAction turnAction )
 		{
-			if ( turnAction == null ) {
-				return;
-			}
-
-
 			var gameLogEntry = new GameLogEntry();
 			var player = this.GameState.GetCurrentPlayer();
 			gameLogEntry.DieIndex = turnAction.DieIndex;
@@ -84,6 +79,8 @@ namespace FourDiceGame
 			else {
 				_lastTurnAction = null;
 			}
+
+			return gameLogEntry;
 		}
 
 
@@ -522,18 +519,95 @@ namespace FourDiceGame
 			printPlayerStats( this.Player2 );
 
 			return sb.ToString();
+		}
 
-			// Current Player: CurrentPlayerType
-			// Dice: 0-X*, 
-			// Player1: 
-			//   Defender[0]:
-			//   Defender[1]:
-			//   Attacker[0]:
-			//   Attacker[1]:
-			//   Attacker[2]:
-			//   Attacker[3]:
-			//   Attacker[4]:
 
+		public string GetAsciiState()
+		{
+			string blank = "   ";
+			Func<GamePiece, string> getPieceLabel = ( piece ) => {
+				return string.Format( "{0}{1}{2}",
+					piece.PlayerType == PlayerType.Player1 ? "1" : "2",
+					piece.PieceType == PieceType.Attacker ? "A" : "D",
+					piece.PieceIndex );
+			};
+			string format = @"
+ |---|                                                |---|
+ |{0}|                 {48} {49} {50} {51}                |{10}|
+ |{1}|                                                |{11}|
+ |{2}|       ({20})                        ({22})       |{12}|
+ |{3}|------------------------------------------------|{13}|
+ |{4}|{24}|{26}|{28}|{30}|{32}|{34}||{36}|{38}|{40}|{42}|{44}|{46}|{14}|
+ |{5}|{25}|{27}|{29}|{31}|{33}|{35}||{37}|{39}|{41}|{43}|{45}|{47}|{15}|
+ |{6}|------------------------------------------------|{16}|
+ |{7}|       ({21})                        ({23})       |{17}|
+ |{8}|                                                |{18}|
+ |{9}|                                                |{19}|
+ |---|                                                |---|";
+
+			var inputs = new List<string>() { 
+				// 0-4: Player1 OwnGoal pieces.
+				this.Player1.Attackers[0].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player1.Attackers[0] ) : blank,
+				this.Player1.Attackers[1].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player1.Attackers[1] ) : blank,
+				this.Player1.Attackers[2].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player1.Attackers[2] ) : blank,
+				this.Player1.Attackers[3].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player1.Attackers[3] ) : blank,
+				this.Player1.Attackers[4].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player1.Attackers[4] ) : blank,
+
+				// 5-9: Player2 OpponentGoal pieces.
+				this.Player2.Attackers[0].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player2.Attackers[0]) : blank,
+				this.Player2.Attackers[1].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player2.Attackers[1]) : blank,
+				this.Player2.Attackers[2].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player2.Attackers[2]) : blank,
+				this.Player2.Attackers[3].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player2.Attackers[3]) : blank,
+				this.Player2.Attackers[4].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player2.Attackers[4]) : blank,
+
+				// 10-14: Player2 OwnGoal pieces.
+				this.Player2.Attackers[0].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player2.Attackers[0] ) : blank,
+				this.Player2.Attackers[1].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player2.Attackers[1] ) : blank,
+				this.Player2.Attackers[2].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player2.Attackers[2] ) : blank,
+				this.Player2.Attackers[3].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player2.Attackers[3] ) : blank,
+				this.Player2.Attackers[4].BoardPositionType == BoardPositionType.OwnGoal ? getPieceLabel( this.Player2.Attackers[4] ) : blank,
+
+				// 15-19: Player1 OpponentGoal pieces.
+				this.Player1.Attackers[0].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player1.Attackers[0]) : blank,
+				this.Player1.Attackers[1].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player1.Attackers[1]) : blank,
+				this.Player1.Attackers[2].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player1.Attackers[2]) : blank,
+				this.Player1.Attackers[3].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player1.Attackers[3]) : blank,
+				this.Player1.Attackers[4].BoardPositionType == BoardPositionType.OpponentGoal ? getPieceLabel( this.Player1.Attackers[4]) : blank,
+				
+				// 20-23: Defender Circles
+				this.Player1.Defenders[0].BoardPositionType == BoardPositionType.DefenderCircle ? getPieceLabel( this.Player1.Defenders[0]) : blank,
+				this.Player1.Defenders[1].BoardPositionType == BoardPositionType.DefenderCircle ? getPieceLabel( this.Player1.Defenders[1]) : blank,
+				this.Player2.Defenders[0].BoardPositionType == BoardPositionType.DefenderCircle ? getPieceLabel( this.Player2.Defenders[0]) : blank,
+				this.Player2.Defenders[1].BoardPositionType == BoardPositionType.DefenderCircle ? getPieceLabel( this.Player2.Defenders[1]) : blank
+
+			};
+
+			// 24-47: Pieces at positions.
+			for ( int index = 1; index < FourDice.Player2GoalLanePosition; index++ ) {
+				var piecesAtPosition = FourDice.GetGamePiecesAtLanePosition( this, index ).ToList();
+
+				if ( piecesAtPosition.Count() == 0 ) {
+					inputs.Add( blank );
+					inputs.Add( blank );
+				}
+				else if ( piecesAtPosition.Count() == 1 ) {
+					inputs.Add( getPieceLabel( piecesAtPosition[0] ) );
+					inputs.Add( blank );
+				}
+				else {
+					inputs.Add( getPieceLabel( piecesAtPosition[0] ) );
+					inputs.Add( getPieceLabel( piecesAtPosition[1] ) );
+				}
+			}
+
+			// 48-51: Dice.
+			for ( int i = 0; i < this.Dice.Length; i++ ) {
+				inputs.Add( string.Format( "{0}{1}",
+					this.Dice[i].Value,
+					this.Dice[i].IsChosen ? "* " : "  " ) );
+			}
+
+			return string.Format( format, inputs.ToArray() );
 		}
 	}
 
@@ -554,12 +628,12 @@ namespace FourDiceGame
 		private void Initialize()
 		{
 			for ( int i = 0; i < 5; i++ ) {
-				var attacker = new GamePiece( BoardPositionType.OwnGoal, PieceType.Attacker, this.PlayerType );
+				var attacker = new GamePiece( BoardPositionType.OwnGoal, PieceType.Attacker, this.PlayerType, i );
 				Attackers[i] = attacker;
 			}
 
 			for ( int i = 0; i < 2; i++ ) {
-				var defender = new GamePiece( BoardPositionType.DefenderCircle, PieceType.Defender, this.PlayerType );
+				var defender = new GamePiece( BoardPositionType.DefenderCircle, PieceType.Defender, this.PlayerType, i );
 				Defenders[i] = defender;
 			}
 		}
@@ -576,11 +650,13 @@ namespace FourDiceGame
 	{
 		public GamePiece( BoardPositionType boardPositionType,
 			PieceType pieceType,
-			PlayerType playerType )
+			PlayerType playerType,
+			int pieceIndex )
 		{
 			this.BoardPositionType = boardPositionType;
 			this.PieceType = pieceType;
 			this.PlayerType = playerType;
+			this.PieceIndex = pieceIndex;
 		}
 
 		/// <summary>
@@ -597,6 +673,8 @@ namespace FourDiceGame
 		public PieceType PieceType;
 
 		public PlayerType PlayerType;
+
+		public int PieceIndex;
 	}
 
 	[Serializable]
