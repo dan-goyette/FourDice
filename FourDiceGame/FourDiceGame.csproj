@@ -47,6 +47,7 @@
     <Compile Include="AI\AIBase.cs" />
     <Compile Include="AI\DefenderAI.cs" />
     <Compile Include="AI\IFourDiceAI.cs" />
+    <Compile Include="AI\OffensiveAI.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="FourDice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

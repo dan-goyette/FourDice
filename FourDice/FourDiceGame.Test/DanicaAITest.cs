@@ -16,13 +16,13 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-        int numberOfGames = 1;
+        int numberOfGames = 100;
 
 		[TestInitialize]
 		public void TestInit()
 		{
 			danicaAI1 = new AIBase( PlayerType.Player1 );
-			danicaAI2 = new DefenderAI( PlayerType.Player2 );
+			danicaAI2 = new OffensiveAI( PlayerType.Player2 );
 		}
 
 		[TestMethod]

@@ -124,15 +124,7 @@ namespace FourDiceGame.AI
 					value += 20;
 				}
 				else if ( piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null ) {
-                    var positionValue = PositionValue(piece.LanePosition.Value);
-                    if (positionValue > 6 )
-                    {
-                        value += 10;
-                    }
-                    else
-                    {
-                        value += positionValue;
-                    }
+					value += PositionValue( piece.LanePosition.Value );
 				}
 			}
             //Debug.WriteLine(string.Format("{0} {1}",_playerType,  value));
