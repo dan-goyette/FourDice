@@ -5,7 +5,6 @@ using UnityEngine;
 public class AttackerController : GamePieceController
 {
 
-
 	protected override void Start()
 	{
 		base.Start();
