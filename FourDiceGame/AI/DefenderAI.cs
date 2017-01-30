@@ -21,7 +21,7 @@ namespace FourDiceGame.AI
             {
                 if (piece.BoardPositionType == BoardPositionType.OpponentGoal)
                 {
-                    value += 20;
+                    value += 30;
                 }
                 else if (piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null)
                 {
@@ -40,7 +40,7 @@ namespace FourDiceGame.AI
             {
                 if (piece.BoardPositionType == BoardPositionType.OwnGoal)
                 {
-                    value += 200;
+                    value += 300;
                 }
             }
 

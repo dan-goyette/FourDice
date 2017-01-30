@@ -55,10 +55,18 @@ namespace FourDiceGame.Test
 				else {
 					nextMoves = danicaAI2.GetNextMoves( fourDice.GameState );
 				}
+                
 
-				Debug.WriteLine( fourDice.ApplyTurnAction( nextMoves[0] ) );
-				Debug.WriteLine( fourDice.ApplyTurnAction( nextMoves[1] ) );
-				Debug.WriteLine( fourDice.GameState.GetAsciiState() );
+                if (numberOfGames == 1)
+                {
+                    Debug.WriteLine(fourDice.ApplyTurnAction(nextMoves[0]));
+                    Debug.WriteLine(fourDice.ApplyTurnAction(nextMoves[1]));
+                    Debug.WriteLine(fourDice.GameState.GetAsciiState());
+                } else
+                {
+                    fourDice.ApplyTurnAction(nextMoves[0]);
+                    fourDice.ApplyTurnAction(nextMoves[1]);
+                }
 				fourDice.RerollDice();
 			}
 			var winner = FourDice.GetGameEndResult( fourDice.GameState ).WinningPlayer;

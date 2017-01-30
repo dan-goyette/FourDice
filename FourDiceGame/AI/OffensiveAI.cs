@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace FourDiceGame.AI
             {
                 if (piece.BoardPositionType == BoardPositionType.OpponentGoal)
                 {
-                    value += 20;
+                    value += 30;
                 }
                 else if (piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null)
                 {

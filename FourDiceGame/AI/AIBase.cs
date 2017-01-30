@@ -34,11 +34,23 @@ namespace FourDiceGame.AI
             gameState.CopyTo(copiedGameState);
 
             var player = getMyPlayer(gameState);
+            var checkedDieValues = new bool[6];
             for (var dieIndex = 0; dieIndex < 4; dieIndex++)
             {
                 if (gameState.Dice[dieIndex].IsChosen) continue;
+                var dieValue = gameState.Dice[dieIndex].Value;
+                if (checkedDieValues[dieValue - 1]) continue;
+                checkedDieValues[dieValue - 1] = true;
+
+                var checkedAttackerPositions = new bool[14];
                 for (var pieceIndex = 0; pieceIndex < player.Attackers.Length; pieceIndex++)
                 {
+                    var attacker = player.Attackers[pieceIndex];
+                    if (attacker.BoardPositionType == BoardPositionType.OpponentGoal) continue;
+                    var attackerPosition = attacker.LanePosition ?? 0;
+                    if (checkedAttackerPositions[attackerPosition]) continue;
+                    checkedAttackerPositions[attackerPosition] = true;
+
                     checkValueofAction(gameState, prevAction, copiedGameState, dieIndex, pieceIndex, PieceType.Attacker);
                 }
                 for (var pieceIndex = 0; pieceIndex < player.Defenders.Length; pieceIndex++)
