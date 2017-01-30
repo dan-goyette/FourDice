@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.1f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -114,7 +112,10 @@
     <Compile Include="Assets\ProCore\ProGrids\Classes\pg_Util.cs" />
     <Compile Include="Assets\Scripts\Controllers\AttackerController.cs" />
     <Compile Include="Assets\Scripts\Controllers\DefenderController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\DieController.cs" />
     <Compile Include="Assets\Scripts\Controllers\GamePieceController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\MainBoardSceneController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\TempButtonController.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\AIBase.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\DefenderAI.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\IFourDiceAI.cs" />
