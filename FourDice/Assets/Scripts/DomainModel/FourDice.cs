@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace FourDiceGame
+namespace Assets.Scripts.DomainModel
 {
 	public class FourDice
 	{

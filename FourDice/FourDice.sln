@@ -5,8 +5,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDice", "FourDice.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDice.Editor", "FourDice.Editor.csproj", "{4CBCE77B-FC44-4978-CE88-6046733A9FE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDiceGame", "..\FourDiceGame\FourDiceGame.csproj", "{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourDiceGame.Test", "FourDiceGame.Test\FourDiceGame.Test.csproj", "{582FCDCE-CEAE-40C4-A1D1-4CD3A8A60E2D}"
 EndProject
 Global
@@ -23,10 +21,6 @@ Global
 		{4CBCE77B-FC44-4978-CE88-6046733A9FE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CBCE77B-FC44-4978-CE88-6046733A9FE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CBCE77B-FC44-4978-CE88-6046733A9FE7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{582FCDCE-CEAE-40C4-A1D1-4CD3A8A60E2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{582FCDCE-CEAE-40C4-A1D1-4CD3A8A60E2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{582FCDCE-CEAE-40C4-A1D1-4CD3A8A60E2D}.Release|Any CPU.ActiveCfg = Release|Any CPU

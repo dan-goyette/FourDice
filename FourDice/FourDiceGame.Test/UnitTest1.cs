@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Assets.Scripts.DomainModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FourDiceGame.Test

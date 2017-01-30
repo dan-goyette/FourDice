@@ -2,9 +2,10 @@
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FourDiceGame.AI;
 using System.Diagnostics;
 using System.Linq;
+using Assets.Scripts.DomainModel.AI;
+using Assets.Scripts.DomainModel;
 
 namespace FourDiceGame.Test
 {

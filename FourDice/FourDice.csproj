@@ -81,6 +81,9 @@
     <Reference Include="UnityEditor.iOS.Extensions.Common">
       <HintPath>Library\UnityAssemblies\UnityEditor.iOS.Extensions.Common.dll</HintPath>
     </Reference>
+    <Reference Include="FourDiceGame">
+      <HintPath>Assets\Plugins\FourDiceGame.dll</HintPath>
+    </Reference>
     <Reference Include="ProBuilderCore-Unity5">
       <HintPath>Assets\ProCore\ProBuilder\Classes\ProBuilderCore-Unity5.dll</HintPath>
     </Reference>
@@ -112,6 +115,13 @@
     <Compile Include="Assets\Scripts\Controllers\AttackerController.cs" />
     <Compile Include="Assets\Scripts\Controllers\DefenderController.cs" />
     <Compile Include="Assets\Scripts\Controllers\GamePieceController.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\AI\AIBase.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\AI\DefenderAI.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\AI\IFourDiceAI.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\AI\OffensiveAI.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\Enums.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\FourDice.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\FourDiceUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\README.txt" />
@@ -134,12 +144,6 @@
     <None Include="Assets\ProCore\ProGrids\About\changelog.txt" />
     <None Include="Assets\ProCore\ProGrids\About\pc_AboutEntry_ProGrids.txt" />
     <None Include="Assets\ProCore\ProGrids\Shader\pg_GridShader.shader" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\FourDiceGame\FourDiceGame.csproj">
-      <Project>{0EEE780E-CA5A-48F0-BA69-0F2A857D7B4A}</Project>
-      <Name>FourDiceGame</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

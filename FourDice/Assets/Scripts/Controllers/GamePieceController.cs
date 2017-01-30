@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using FourDiceGame;
+using Assets.Scripts.DomainModel;
 using UnityEngine;
 
 public abstract class GamePieceController : MonoBehaviour
