@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FourDiceGame
 {
@@ -494,7 +493,7 @@ namespace FourDiceGame
 			for ( int i = 0; i < Dice.Length; i++ ) {
 				diceValues.Add( string.Format( "{0}:{1}{2}", i, Dice[i].Value, Dice[i].IsChosen ? "*" : "" ) );
 			}
-			sb.AppendLine( string.Join( ", ", diceValues ) );
+			sb.AppendLine( string.Join( ", ", diceValues.ToArray() ) );
 
 
 			Action<Player> printPlayerStats = ( player ) => {
@@ -618,7 +617,7 @@ namespace FourDiceGame
 		public Player( PlayerType playerType, string aiName )
 		{
 			this.PlayerType = playerType;
-			this.PlayerControlType = string.IsNullOrWhiteSpace( aiName ) ? PlayerControlType.Human : PlayerControlType.Computer;
+			this.PlayerControlType = string.IsNullOrEmpty( aiName ) ? PlayerControlType.Human : PlayerControlType.Computer;
 			this.AIName = aiName;
 			Attackers = new GamePiece[5];
 			Defenders = new GamePiece[2];
