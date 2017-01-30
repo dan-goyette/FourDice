@@ -7,9 +7,9 @@ namespace Assets.Scripts.DomainModel.AI
 {
 	public class OffensiveAI : AIBase
 	{
-		public OffensiveAI( PlayerType playerType ) : base( playerType ) { }
+		public OffensiveAI(PlayerType playerType, bool simulateOpponent) : base(playerType, simulateOpponent) { }
 
-		protected override int GameStateValue( GameState gameState )
+        protected override int GameStateValue( GameState gameState )
 		{
 			var player = getMyPlayer( gameState );
 			var value = 0;

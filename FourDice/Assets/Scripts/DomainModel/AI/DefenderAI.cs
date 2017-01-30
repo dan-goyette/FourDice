@@ -7,7 +7,7 @@ namespace Assets.Scripts.DomainModel.AI
 {
 	public class DefenderAI : AIBase
 	{
-		public DefenderAI( PlayerType playerType ) : base( playerType ) { }
+		public DefenderAI( PlayerType playerType, bool simulateOpponent) : base( playerType, simulateOpponent) { }
 
 		protected override int GameStateValue( GameState gameState )
 		{

@@ -9,13 +9,18 @@ namespace Assets.Scripts.DomainModel.AI
 	public class AIBase : IFourDiceAI
 	{
 		protected PlayerType _playerType;
+        protected AIBase _opponentAI;
 		protected TurnAction[] bestActions = new TurnAction[2];
 		protected int bestValue = -10000;
 
-		public AIBase( PlayerType playerType )
+		public AIBase( PlayerType playerType, bool simulateOpponent = true)
 		{
 			this._playerType = playerType;
-		}
+            if (simulateOpponent)
+            {
+                this._opponentAI = new DefenderAI(_playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false);
+            }
+        }
 
 		public TurnAction[] GetNextMoves( GameState originalGameState )
 		{
@@ -28,7 +33,13 @@ namespace Assets.Scripts.DomainModel.AI
 			return GetNextMove( gameState, null );
 		}
 
-		protected TurnAction[] GetNextMove( GameState gameState, TurnAction prevAction )
+        public int GetNextMoveValue(GameState originalGameState)
+        {
+            GetNextMoves(originalGameState);
+            return bestValue;
+        }
+
+        protected TurnAction[] GetNextMove( GameState gameState, TurnAction prevAction )
 		{
 			var copiedGameState = new GameState( "" );
 			gameState.CopyTo( copiedGameState );
@@ -41,7 +52,7 @@ namespace Assets.Scripts.DomainModel.AI
 				if ( checkedDieValues[dieValue - 1] ) continue;
 				checkedDieValues[dieValue - 1] = true;
 
-				var checkedAttackerPositions = new bool[14];
+				var checkedAttackerPositions = new bool[13];
 				for ( var pieceIndex = 0; pieceIndex < player.Attackers.Length; pieceIndex++ ) {
 					var attacker = player.Attackers[pieceIndex];
 					if ( attacker.BoardPositionType == BoardPositionType.OpponentGoal ) continue;
@@ -94,6 +105,10 @@ namespace Assets.Scripts.DomainModel.AI
 				}
 				else {
 					var value = GameStateValue( copiedGameState );
+                    if (_opponentAI != null)
+                    {
+                        value -= _opponentAI.GetNextMoveValue(copiedGameState);
+                    }
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
 						bestActions[1] = turnAction;
