@@ -60,14 +60,12 @@ public abstract class GamePieceController : MonoBehaviour
 			if ( _isSelected ) {
 				if ( !SelectionParticleSystem.isPlaying ) {
 					SelectionParticleSystem.Play();
-					Debug.Log( "Playing Particle system for " + gameObject.name );
 				}
 			}
 			else {
 				if ( SelectionParticleSystem.isPlaying ) {
 					SelectionParticleSystem.Stop();
 					SelectionParticleSystem.Clear();
-					Debug.Log( "Stopping Particle system for " + gameObject.name );
 				}
 			}
 		}
