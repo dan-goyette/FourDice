@@ -22,8 +22,8 @@ namespace FourDiceGame.Test
 		[TestInitialize]
 		public void TestInit()
 		{
-			danicaAI1 = new AIBase( PlayerType.Player1 );
-			danicaAI2 = new OffensiveAI( PlayerType.Player2 );
+			danicaAI1 = new DefenderAI( PlayerType.Player1, false );
+			danicaAI2 = new DefenderAI( PlayerType.Player2, true);
 		}
 
 		[TestMethod]
@@ -41,13 +41,8 @@ namespace FourDiceGame.Test
 		public bool PlayAGame( AIBase AI1, AIBase AI2 )
 		{
 			FourDice fourDice = new FourDice( "danicaAI" );
-			fourDice.RollToSeeWhoGoesFirst();
-			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
-			/*fourDice.GameState.Dice[0].Value = 1;
-            fourDice.GameState.Dice[1].Value = 2;
-            fourDice.GameState.Dice[2].Value = 3;
-            fourDice.GameState.Dice[3].Value = 4;*/
-			var nextMoves = new TurnAction[2];
+			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
+            var nextMoves = new TurnAction[2];
 
 			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished ) {
 				if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
