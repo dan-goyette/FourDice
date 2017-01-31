@@ -42,12 +42,6 @@ public abstract class GamePieceController : MonoBehaviour
 		}
 
 		mesh.materials = materials;
-
-
-
-		this.transform.localScale = new Vector3( 0.75f, 0.75f, 0.75f );
-
-
 	}
 
 	// Update is called once per frame
