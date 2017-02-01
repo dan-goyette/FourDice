@@ -4,27 +4,31 @@ using Assets.Scripts.DomainModel;
 using UnityEngine;
 
 
-public abstract class GamePieceController : MonoBehaviour
+public abstract class GamePieceController : SelectableObjectController
 {
-	public ParticleSystem SelectionParticleSystem;
 	public PlayerType PlayerType;
+	public int PieceIndex;
+	public int? LanePosition;
+	public BoardPositionType BoardPositionType;
 
 	public Material[] MaterialsToReplace;
 	public Material[] Player1ReplacementMaterials;
 	public Material[] Player2ReplacementMaterials;
 
-	private bool _isSelected;
 
-	protected virtual void Awake()
+	public abstract PieceType PieceType { get; }
+
+	protected override void Awake()
 	{
-		SelectionParticleSystem.Stop();
-		SelectionParticleSystem.Clear();
+		base.Awake();
 	}
 
 
 	// Use this for initialization
-	protected virtual void Start()
+	protected override void Start()
 	{
+		base.Start();
+
 		// Find all player-based surfaces and set the appropriate material.
 
 		var mesh = this.gameObject.GetComponent<MeshRenderer>();
@@ -45,27 +49,9 @@ public abstract class GamePieceController : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	protected virtual void Update()
+	protected override void Update()
 	{
-
+		base.Update();
 	}
 
-	void OnMouseOver()
-	{
-		if ( Input.GetMouseButtonDown( 0 ) ) {
-			_isSelected = !_isSelected;
-
-			if ( _isSelected ) {
-				if ( !SelectionParticleSystem.isPlaying ) {
-					SelectionParticleSystem.Play();
-				}
-			}
-			else {
-				if ( SelectionParticleSystem.isPlaying ) {
-					SelectionParticleSystem.Stop();
-					SelectionParticleSystem.Clear();
-				}
-			}
-		}
-	}
 }

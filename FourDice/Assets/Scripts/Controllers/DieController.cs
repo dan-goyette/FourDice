@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class DieController : MonoBehaviour
+public class DieController : SelectableObjectController
 {
-
-	public bool IsSelectable;
-	public bool IsSelected;
-	public int DieValue;
-	public int DieIndex;
-
-	public float StableYPosition;
 
 	private Rigidbody _rigidbody;
 
+	public bool IsRolling;
 
 
 	public List<Vector3> _directions;
@@ -23,14 +17,18 @@ public class DieController : MonoBehaviour
 
 
 	// Use this for initialization
-	void Start()
+	protected override void Start()
 	{
-
+		base.Start();
 	}
 
-
-	void Awake()
+	protected override void Awake()
 	{
+		base.Awake();
+
+		SelectionParticleSystem.Stop();
+		SelectionParticleSystem.Clear();
+
 		_rigidbody = gameObject.GetComponent<Rigidbody>();
 
 		// For the sake of this example we assume a regular cube dice if 
@@ -56,15 +54,20 @@ public class DieController : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	void Update()
+	protected override void Update()
 	{
-
+		base.Update();
 	}
 
 	public bool IsMoving()
 	{
 		//Debug.Log( _rigidbody.velocity.magnitude );
 		return _rigidbody.velocity.magnitude > 0.001f;
+	}
+
+	public int? GetDieValue( float epsilonDeg = 5f )
+	{
+		return GetDieValue( Vector3.up, epsilonDeg );
 	}
 
 	public int? GetDieValue( Vector3 referenceVectorUp, float epsilonDeg = 5f )
@@ -87,7 +90,7 @@ public class DieController : MonoBehaviour
 
 		// -1 as error code for not within bounds
 
-		return (mostSimilarDirectionIndex >= 0) ? _sideValues[mostSimilarDirectionIndex] : -1;
+		return (mostSimilarDirectionIndex >= 0) ? (int?)_sideValues[mostSimilarDirectionIndex] : null;
 
 
 	}

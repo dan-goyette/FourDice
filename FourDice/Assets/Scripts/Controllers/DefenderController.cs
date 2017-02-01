@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.DomainModel;
 using UnityEngine;
 
 public class DefenderController : GamePieceController
 {
+
 
 	protected override void Start()
 	{
@@ -15,4 +18,11 @@ public class DefenderController : GamePieceController
 		base.Update();
 	}
 
+	public override PieceType PieceType
+	{
+		get
+		{
+			return PieceType.Defender;
+		}
+	}
 }

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TempButtonController : MonoBehaviour {
+public class TempButtonController : MonoBehaviour
+{
 
 	MainBoardSceneController mainBoard;
 
 	// Use this for initialization
-	void Start () {
+	void Start()
+	{
 		mainBoard = GameObject.FindObjectOfType<MainBoardSceneController>();
 	}
 
@@ -15,7 +17,7 @@ public class TempButtonController : MonoBehaviour {
 	void OnMouseOver()
 	{
 		if ( Input.GetMouseButtonDown( 0 ) ) {
-			mainBoard.RollDice();
+			mainBoard.RollSelectedDice( isInitialDiceRoll: false );
 		}
 	}
 
@@ -23,7 +25,8 @@ public class TempButtonController : MonoBehaviour {
 
 
 	// Update is called once per frame
-	void Update () {
-		
+	void Update()
+	{
+
 	}
 }
