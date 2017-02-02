@@ -20,6 +20,7 @@ public class MainBoardSceneController : MonoBehaviour
 	public Button RollDiceButton;
 	public Text Player1TurnLabel;
 	public Text Player2TurnLabel;
+	public Text LogText;
 
 	Vector3 _mainCameraStandardPosition;
 	Vector3 _mainCameraTargetPosition;
@@ -79,56 +80,56 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void CreateGamePieces()
 	{
+
+
+		Action<int, PlayerType, GameObject[], AttackerController[]> createAttacker = ( pieceIndex, playerType, placeHolders, attackers ) => {
+			var placeHolder = placeHolders[pieceIndex];
+			GameObject attacker = (GameObject)Instantiate( Resources.Load( "Attacker" ) );
+			attacker.transform.position = placeHolder.transform.position;
+
+			var attackerController = attacker.GetComponent<AttackerController>();
+			attackerController.PlayerType = playerType;
+			attackerController.PieceIndex = pieceIndex;
+			attackerController.OnSelectionChanged += AttackerController_OnSelectionChanged;
+
+			attackers[pieceIndex] = attackerController;
+			placeHolder.SetActive( false );
+		};
+
+
+		Action<int, PlayerType, GameObject[], DefenderController[]> createDefender = ( pieceIndex, playerType, placeHolders, defenders ) => {
+			var placeHolder = placeHolders[pieceIndex];
+			GameObject defender = (GameObject)Instantiate( Resources.Load( "Defender" ) );
+			defender.transform.position = placeHolder.transform.position;
+
+			var defenderController = defender.GetComponent<DefenderController>();
+			defenderController.PlayerType = playerType;
+			defenderController.PieceIndex = pieceIndex;
+			defenderController.OnSelectionChanged += DefenderController_OnSelectionChanged;
+
+			defenders[pieceIndex] = defenderController;
+			placeHolder.SetActive( false );
+		};
+
 		_player1Attackers = new AttackerController[5];
 		for ( var i = 0; i < InitialPlayer1AttackerPlaceHolders.Length; i++ ) {
-			var placeHolder = InitialPlayer1AttackerPlaceHolders[i];
-			GameObject attacker = (GameObject)Instantiate( Resources.Load( "Attacker" ) );
-			var attackerController = attacker.GetComponent<AttackerController>();
-			attackerController.PlayerType = PlayerType.Player1;
-			attackerController.PieceIndex = i;
-			attacker.transform.position = placeHolder.transform.position;
-			attackerController.OnSelectionChanged += AttackerController_OnSelectionChanged;
-			_player1Attackers[i] = attackerController;
-			placeHolder.SetActive( false );
+			createAttacker( i, PlayerType.Player1, InitialPlayer1AttackerPlaceHolders, _player1Attackers );
 		}
 
 		_player1Defenders = new DefenderController[2];
 		for ( var i = 0; i < InitialPlayer1DefenderPlaceHolders.Length; i++ ) {
-			var placeHolder = InitialPlayer1DefenderPlaceHolders[i];
-			GameObject defender = (GameObject)Instantiate( Resources.Load( "Defender" ) );
-			var defenderController = defender.GetComponent<DefenderController>();
-			defenderController.PlayerType = PlayerType.Player1;
-			defenderController.PieceIndex = i;
-			defender.transform.position = placeHolder.transform.position;
-			defenderController.OnSelectionChanged += DefenderController_OnSelectionChanged;
-			_player1Defenders[i] = defenderController;
-			placeHolder.SetActive( false );
+			createDefender( i, PlayerType.Player1, InitialPlayer1DefenderPlaceHolders, _player1Defenders );
 		}
 
 		_player2Attackers = new AttackerController[5];
 		for ( var i = 0; i < InitialPlayer2AttackerPlaceHolders.Length; i++ ) {
-			var placeHolder = InitialPlayer2AttackerPlaceHolders[i];
-			GameObject attacker = (GameObject)Instantiate( Resources.Load( "Attacker" ) );
-			var attackerController = attacker.GetComponent<AttackerController>();
-			attackerController.PlayerType = PlayerType.Player2;
-			attackerController.PieceIndex = i;
-			attacker.transform.position = placeHolder.transform.position;
-			attackerController.OnSelectionChanged += AttackerController_OnSelectionChanged;
-			_player2Attackers[i] = attackerController;
-			placeHolder.SetActive( false );
+			createAttacker( i, PlayerType.Player2, InitialPlayer2AttackerPlaceHolders, _player2Attackers );
 		}
 
 
 		_player2Defenders = new DefenderController[2];
 		for ( var i = 0; i < InitialPlayer2DefenderPlaceHolders.Length; i++ ) {
-			var placeHolder = InitialPlayer2DefenderPlaceHolders[i];
-			GameObject defender = (GameObject)Instantiate( Resources.Load( "Defender" ) );
-			var defenderController = defender.GetComponent<DefenderController>();
-			defenderController.PlayerType = PlayerType.Player2;
-			defenderController.PieceIndex = i;
-			defender.transform.position = placeHolder.transform.position;
-			_player2Defenders[i] = defenderController;
-			placeHolder.SetActive( false );
+			createDefender( i, PlayerType.Player2, InitialPlayer2DefenderPlaceHolders, _player2Defenders );
 		}
 
 		foreach ( var gamePiece in _player1Attackers.Cast<SelectableObjectController>()
@@ -147,8 +148,8 @@ public class MainBoardSceneController : MonoBehaviour
 			GameObject die = (GameObject)Instantiate( Resources.Load( "Die" ) );
 			var dieController = die.GetComponent<DieController>();
 			_dice[i] = dieController;
-			die.transform.position = _dicePositions[i] = _diceTargetPositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, 5 );
-			_dicePreRollPositions[i] = new Vector3( -4 + 2.5f * i, 8f, -4 );
+			die.transform.position = _dicePositions[i] = _diceTargetPositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, -2 );
+			_dicePreRollPositions[i] = new Vector3( -4 + 2.5f * i, 8f, -11 );
 			die.GetComponent<Rigidbody>().isKinematic = true;
 			dieController.OnSelectionChanged += DieController_OnSelectionChanged;
 
@@ -244,6 +245,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private IEnumerator InitiateStartGame()
 	{
+		AppendToLogText( "Rolling to see who plays first." );
 
 		int player1Score = 0;
 		int player2Score = 0;
@@ -269,6 +271,10 @@ public class MainBoardSceneController : MonoBehaviour
 
 			player1Score = _dice[0].GetDieValue().Value + _dice[1].GetDieValue().Value;
 			player2Score = _dice[2].GetDieValue().Value + _dice[3].GetDieValue().Value;
+
+			if ( player1Score == player2Score ) {
+				AppendToLogText( "Tie score. Rerolling." );
+			}
 		}
 
 		for ( var i = 0; i < _dice.Length; i++ ) {
@@ -277,6 +283,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 		SetActivePlayer( player1Score > player2Score ? PlayerType.Player1 : PlayerType.Player2 );
+
+		AppendToLogText( string.Format( "{0} plays first", _activePlayerType ) );
 
 		// The dice have already been rolled. Skip right to die selection.
 		_previousGameLoopPhase = _gameLoopPhase;
@@ -588,19 +596,18 @@ public class MainBoardSceneController : MonoBehaviour
 		var shouldReroll = false;
 		while ( true ) {
 			if ( secondsPassed > 5.0f ) {
-				//Debug.Log( "Took too long. Rerolling." );
+				AppendToLogText( "Took too long. Rerolling." );
 				shouldReroll = true;
 				break;
 			}
 			if ( _dice.Any( d => d.IsMoving() ) ) {
 				secondsPassed += interval;
-				//Debug.Log( string.Format( "Still moving after {0} seconds", secondsPassed ) );
 				yield return new WaitForSeconds( interval );
 			}
 			else {
 				// The dice have stopped. 
 				if ( _dice.Select( d => d.GetDieValue() ).Any( dv => dv == null ) ) {
-					//Debug.Log( "Dice landed weird. Rerolling." );
+					AppendToLogText( "Dice landed weird. Rerolling." );
 					shouldReroll = true;
 					break;
 				}
@@ -616,7 +623,7 @@ public class MainBoardSceneController : MonoBehaviour
 		}
 		else {
 			DiceKeeperCollider.enabled = false;
-			Debug.Log( string.Format( "Dice values are: {0}", string.Join( ", ", _dice.Select( d => d.GetDieValue() ).Select( dv => dv == null ? "?" : dv.Value.ToString() ).ToArray() ) ) );
+			AppendToLogText( string.Format( "Dice values are: {0}", string.Join( ", ", _dice.Select( d => d.GetDieValue() ).Select( dv => dv == null ? "?" : dv.Value.ToString() ).ToArray() ) ) );
 
 			_mainCameraTargetPosition = _mainCameraStandardPosition;
 			_mainCameraSlerpTime = 0;
@@ -658,6 +665,11 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 
 		}
+	}
+
+	private void AppendToLogText( string text )
+	{
+		LogText.text = string.Format( "{0}{1}{2}", text, Environment.NewLine, LogText.text );
 	}
 }
 
