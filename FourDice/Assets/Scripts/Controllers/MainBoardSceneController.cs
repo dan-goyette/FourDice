@@ -41,7 +41,7 @@ public class MainBoardSceneController : MonoBehaviour
 	private FourDice _fourDice;
 
 	private PlayerType _activePlayerType;
-	private GameTurnState _gameTurnState;
+	private GameLoopPhase _gameLoopPhase;
 
 	// Use this for initialization
 	void Start()
@@ -67,7 +67,7 @@ public class MainBoardSceneController : MonoBehaviour
 		Player1TurnLabel.gameObject.SetActive( false );
 		Player2TurnLabel.gameObject.SetActive( false );
 
-		_gameTurnState = GameTurnState.Waiting;
+		_gameLoopPhase = GameLoopPhase.Waiting;
 
 	}
 
@@ -156,12 +156,18 @@ public class MainBoardSceneController : MonoBehaviour
 		if ( arg.IsSelected ) {
 			_lastSelectedPiece = (GamePieceController)sender;
 		}
+		else {
+			_lastSelectedPiece = null;
+		}
 	}
 
 	private void AttackerController_OnSelectionChanged( object sender, SelectableObjectSelectionChangedEvent arg )
 	{
 		if ( arg.IsSelected ) {
 			_lastSelectedPiece = (GamePieceController)sender;
+		}
+		else {
+			_lastSelectedPiece = null;
 		}
 	}
 
@@ -208,6 +214,8 @@ public class MainBoardSceneController : MonoBehaviour
 	bool _player1InitialDiceRolling;
 	bool _player2InitialDiceRolling;
 	GamePieceController _lastSelectedPiece;
+	LanePositionController _lastSelectedLanePosition;
+	private GameLoopPhase _previousGameLoopPhase;
 
 	private IEnumerator InitiateStartGame()
 	{
@@ -246,16 +254,58 @@ public class MainBoardSceneController : MonoBehaviour
 		SetActivePlayer( player1Score > player2Score ? PlayerType.Player1 : PlayerType.Player2 );
 
 
+
 		while ( true ) {
+			var attackers = _activePlayerType == PlayerType.Player1 ? _player1Attackers : _player2Attackers;
+			var defenders = _activePlayerType == PlayerType.Player1 ? _player1Defenders : _player2Defenders;
+
+
+
 			// Main Loop - Observe changes to the state, potentially fall into an animation.
-			if ( _gameTurnState == GameTurnState.Waiting ) {
+			if ( _gameLoopPhase == GameLoopPhase.Waiting ) {
 				// TODO - Not sure we'll use this.
+
+				DoGameLoopPhaseInitialization( () => { } );
 			}
-			else if ( _gameTurnState == GameTurnState.DieSelection ) {
-				_lastSelectedPiece = null;
+			else if ( _gameLoopPhase == GameLoopPhase.WaitingForFinalization ) {
+				// Nothing to do here. We're just waiting for the player to click a UI button.
+
+				DoGameLoopPhaseInitialization( () => { } );
+			}
+			else if ( _gameLoopPhase == GameLoopPhase.DieSelection ) {
+
+
+				DoGameLoopPhaseInitialization( () => {
+					_lastSelectedPiece = null;
+					_lastSelectedLanePosition = null;
+
+					DeselectAllGamePieces();
+					DeselectAllLanePositions();
+				} );
 
 				// Determine if all dice are selected.
 				if ( _dice.Count( d => d.IsSelected ) == 2 ) {
+
+					_gameLoopPhase = GameLoopPhase.FirstPieceSelection;
+
+				}
+
+
+			}
+			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceSelection ) {
+
+				DoGameLoopPhaseInitialization( () => {
+					// Ensure all pieces are in a consistent state for this turn state.
+
+					DeselectAllGamePieces();
+					DeselectAllLanePositions();
+
+					foreach ( var lanePosition in _lanePositions ) {
+						lanePosition.IsSelected = false;
+						lanePosition.SetSelectable( false );
+						lanePosition.SetDeselectable( false );
+					}
+
 
 					List<int> dieIndices = new List<int>();
 					for ( var i = 0; i < _dice.Length; i++ ) {
@@ -267,74 +317,115 @@ public class MainBoardSceneController : MonoBehaviour
 						}
 					}
 
-					var movesExist = MakePiecesSelectable( dieIndices );
+					MakePiecesSelectable( dieIndices );
+				} );
 
-					if ( movesExist ) {
-						_gameTurnState = GameTurnState.FirstPieceSelection;
-					}
-					else {
-						AwaitTurnFinalization();
-					}
-				}
-			}
-			else if ( _gameTurnState == GameTurnState.FirstPieceSelection ) {
+
+				// Wait for the player to select a piece.
 				if ( _lastSelectedPiece != null ) {
-					_gameTurnState = GameTurnState.FirstPieceTargetSelection;
+					_gameLoopPhase = GameLoopPhase.FirstPieceTargetSelection;
 				}
 			}
-			else if ( _gameTurnState == GameTurnState.FirstPieceTargetSelection ) {
-				var attackers = _activePlayerType == PlayerType.Player1 ? _player1Attackers : _player2Attackers;
-				var defenders = _activePlayerType == PlayerType.Player1 ? _player1Defenders : _player2Defenders;
+			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceTargetSelection ) {
 
-				foreach ( var piece in attackers.Cast<GamePieceController>().Union( defenders ) ) {
-					piece.SetSelectable( false );
-					piece.SetDeselectable( false );
-				}
+				DoGameLoopPhaseInitialization( () => {
+					foreach ( var piece in attackers.Cast<GamePieceController>().Union( defenders ) ) {
+						piece.SetSelectable( false );
+						piece.SetDeselectable( true );
+					}
 
-				foreach ( var lanePosition in _lanePositions ) {
-					lanePosition.IsSelected = false;
-					lanePosition.SetSelectable( false );
-					lanePosition.SetDeselectable( false );
-				}
+					DeselectAllLanePositions();
 
-				// Determine which positions are valid.
+					HashSet<int> validPositions = new HashSet<int>();
 
-
-				HashSet<int> validPositions = new HashSet<int>();
-
-				for ( var i = 0; i < _dice.Length; i++ ) {
-					var die = _dice[i];
-					if ( die.IsSelected ) {
-						foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
-							var turnAction = new TurnAction( i, direction, _lastSelectedPiece.PieceType, _lastSelectedPiece.PieceIndex );
-							_fourDice.GameState.CurrentPlayerType = _activePlayerType;
-							var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
-							if ( validationResult.IsValidAction ) {
-								validPositions.Add( validationResult.NewLanePosition.Value );
+					for ( var i = 0; i < _dice.Length; i++ ) {
+						var die = _dice[i];
+						if ( die.IsSelected ) {
+							foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
+								var turnAction = new TurnAction( i, direction, _lastSelectedPiece.PieceType, _lastSelectedPiece.PieceIndex );
+								_fourDice.GameState.CurrentPlayerType = _activePlayerType;
+								var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
+								if ( validationResult.IsValidAction ) {
+									validPositions.Add( validationResult.NewLanePosition.Value );
+								}
 							}
 						}
 					}
-				}
 
-				foreach ( var lanePosition in _lanePositions ) {
-					if ( validPositions.Contains( lanePosition.LanePosition ) ) {
-						lanePosition.IsSelected = false;
-						lanePosition.SetSelectable( true );
-						lanePosition.SetDeselectable( true );
+					foreach ( var lanePosition in _lanePositions ) {
+						if ( validPositions.Contains( lanePosition.LanePosition ) ) {
+							lanePosition.IsSelected = false;
+							lanePosition.SetSelectable( true );
+							lanePosition.SetDeselectable( true );
+						}
 					}
+
+
+				} );
+
+				if ( _lastSelectedPiece == null ) {
+					// They've deselected the piece. Revert to First Piece Selection.
+					_gameLoopPhase = GameLoopPhase.FirstPieceSelection;
+				}
+				else {
+
+					// Determine which positions are valid.
+
+
+					if ( _lastSelectedLanePosition != null ) {
+						// Move the piece to the desired location.
+
+						yield return new WaitForSeconds( 1 );
+
+						_gameLoopPhase = GameLoopPhase.SecondPieceSelection;
+					}
+
+
 				}
 
 
 			}
+
+
 
 
 			yield return new WaitForEndOfFrame();
 		}
 	}
 
-	private void AwaitTurnFinalization()
+
+	private void DoGameLoopPhaseInitialization( Action onInitializing )
 	{
-		_gameTurnState = GameTurnState.WaitingForFinalization;
+		if ( _gameLoopPhase != _previousGameLoopPhase ) {
+
+			if ( onInitializing != null ) {
+				onInitializing();
+			}
+
+			// We keep track of the phase from the previous iteration so we can easuily tell whether
+			// we're hitting a step for the first time.
+
+			_previousGameLoopPhase = _gameLoopPhase;
+		}
+	}
+
+	private void DeselectAllGamePieces()
+	{
+		foreach ( var gamePiece in _player1Attackers.Cast<GamePieceController>().Union( _player2Attackers )
+			.Union( _player1Defenders ).Union( _player2Defenders ) ) {
+			gamePiece.IsSelected = false;
+			gamePiece.SetSelectable( false );
+			gamePiece.SetDeselectable( false );
+		}
+	}
+
+	private void DeselectAllLanePositions()
+	{
+		foreach ( var lanePosition in _lanePositions ) {
+			lanePosition.IsSelected = false;
+			lanePosition.SetSelectable( false );
+			lanePosition.SetDeselectable( false );
+		}
 	}
 
 	private bool MakePiecesSelectable( List<int> dieIndices )
@@ -389,7 +480,8 @@ public class MainBoardSceneController : MonoBehaviour
 			die.SetDeselectable( true );
 		}
 
-		_gameTurnState = GameTurnState.DieSelection;
+		_previousGameLoopPhase = _gameLoopPhase;
+		_gameLoopPhase = GameLoopPhase.DieSelection;
 
 	}
 
@@ -527,7 +619,7 @@ public class MainBoardSceneController : MonoBehaviour
 }
 
 
-enum GameTurnState
+enum GameLoopPhase
 {
 	Waiting,
 	DieSelection,
