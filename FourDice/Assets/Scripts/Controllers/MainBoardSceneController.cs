@@ -16,6 +16,8 @@ public class MainBoardSceneController : MonoBehaviour
 	public GameObject[] InitialPlayer2DefenderPlaceHolders;
 
 	public Button StartGameButton;
+	public Button EndTurnButton;
+	public Button RollDiceButton;
 	public Text Player1TurnLabel;
 	public Text Player2TurnLabel;
 
@@ -68,6 +70,10 @@ public class MainBoardSceneController : MonoBehaviour
 		Player2TurnLabel.gameObject.SetActive( false );
 
 		_gameLoopPhase = GameLoopPhase.Waiting;
+
+		StartGameButton.gameObject.SetActive( true );
+		EndTurnButton.gameObject.SetActive( false );
+		RollDiceButton.gameObject.SetActive( false );
 
 	}
 
@@ -141,7 +147,7 @@ public class MainBoardSceneController : MonoBehaviour
 			GameObject die = (GameObject)Instantiate( Resources.Load( "Die" ) );
 			var dieController = die.GetComponent<DieController>();
 			_dice[i] = dieController;
-			die.transform.position = _dicePositions[i] = _diceTargetPositions[i] = new Vector3( -3.75f + 2.5f * i, .75f, 5 );
+			die.transform.position = _dicePositions[i] = _diceTargetPositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, 5 );
 			_dicePreRollPositions[i] = new Vector3( -4 + 2.5f * i, 8f, -4 );
 			die.GetComponent<Rigidbody>().isKinematic = true;
 			dieController.OnSelectionChanged += DieController_OnSelectionChanged;
@@ -211,6 +217,25 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 
+	public void EndTurnButtonPressed()
+	{
+		EndTurnButton.gameObject.SetActive( false );
+		SetActivePlayer( _activePlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1 );
+		_gameLoopPhase = GameLoopPhase.WaitingForDiceRoll;
+	}
+
+
+
+	public void RollDieButtonPressed()
+	{
+		RollDiceButton.gameObject.SetActive( false );
+		RollSelectedDice( false, () => {
+			_gameLoopPhase = GameLoopPhase.DieSelection;
+		} );
+	}
+
+
+
 	bool _player1InitialDiceRolling;
 	bool _player2InitialDiceRolling;
 	GamePieceController _lastSelectedPiece;
@@ -253,8 +278,15 @@ public class MainBoardSceneController : MonoBehaviour
 
 		SetActivePlayer( player1Score > player2Score ? PlayerType.Player1 : PlayerType.Player2 );
 
+		// The dice have already been rolled. Skip right to die selection.
+		_previousGameLoopPhase = _gameLoopPhase;
+		_gameLoopPhase = GameLoopPhase.DieSelection;
 
+		StartCoroutine( RunGameLoop() );
+	}
 
+	private IEnumerator RunGameLoop()
+	{
 		while ( true ) {
 			var attackers = _activePlayerType == PlayerType.Player1 ? _player1Attackers : _player2Attackers;
 			var defenders = _activePlayerType == PlayerType.Player1 ? _player1Defenders : _player2Defenders;
@@ -266,6 +298,13 @@ public class MainBoardSceneController : MonoBehaviour
 				// TODO - Not sure we'll use this.
 
 				DoGameLoopPhaseInitialization( () => { } );
+			}
+			else if ( _gameLoopPhase == GameLoopPhase.WaitingForDiceRoll ) {
+				DoGameLoopPhaseInitialization( () => {
+					DeselectAllGamePieces();
+					DeselectAllLanePositions();
+					RollDiceButton.gameObject.SetActive( true );
+				} );
 			}
 			else if ( _gameLoopPhase == GameLoopPhase.WaitingForFinalization ) {
 				// Nothing to do here. We're just waiting for the player to click a UI button.
@@ -281,6 +320,13 @@ public class MainBoardSceneController : MonoBehaviour
 
 					DeselectAllGamePieces();
 					DeselectAllLanePositions();
+
+
+					foreach ( var die in _dice ) {
+						die.IsSelected = false;
+						die.SetSelectable( true );
+						die.SetDeselectable( true );
+					}
 				} );
 
 				// Determine if all dice are selected.
@@ -295,6 +341,9 @@ public class MainBoardSceneController : MonoBehaviour
 			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceSelection ) {
 
 				DoGameLoopPhaseInitialization( () => {
+					// After dice are chosen, the player may end their turn.
+					EndTurnButton.gameObject.SetActive( true );
+
 					// Ensure all pieces are in a consistent state for this turn state.
 
 					DeselectAllGamePieces();
@@ -391,6 +440,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 			yield return new WaitForEndOfFrame();
 		}
+
 	}
 
 
@@ -474,15 +524,6 @@ public class MainBoardSceneController : MonoBehaviour
 		_activePlayerType = playerType;
 		Player1TurnLabel.gameObject.SetActive( _activePlayerType == PlayerType.Player1 );
 		Player2TurnLabel.gameObject.SetActive( _activePlayerType == PlayerType.Player2 );
-
-		foreach ( var die in _dice ) {
-			die.SetSelectable( true );
-			die.SetDeselectable( true );
-		}
-
-		_previousGameLoopPhase = _gameLoopPhase;
-		_gameLoopPhase = GameLoopPhase.DieSelection;
-
 	}
 
 	Coroutine awaitFinalDiceRolls;
@@ -504,7 +545,9 @@ public class MainBoardSceneController : MonoBehaviour
 			if ( !die.IsSelected && !die.IsRolling ) {
 				continue;
 			}
+			die.SetDeselectable( true );
 			die.Deselect();
+			die.SetDeselectable( false );
 			die.IsRolling = true;
 
 			_diceTargetPositions[i] = _dicePreRollPositions[i];
@@ -622,6 +665,7 @@ public class MainBoardSceneController : MonoBehaviour
 enum GameLoopPhase
 {
 	Waiting,
+	WaitingForDiceRoll,
 	DieSelection,
 	FirstPieceSelection,
 	SecondPieceSelection,
