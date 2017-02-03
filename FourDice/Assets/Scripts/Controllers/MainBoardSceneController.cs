@@ -547,7 +547,9 @@ public class MainBoardSceneController : MonoBehaviour
 						// Remove selections
 						DeselectAllGamePieces();
 						DeselectAllLanePositions();
-
+						Button[] allButtons;
+						Dictionary<Button, bool> buttonStates;
+						NewMethod( out allButtons, out buttonStates );
 
 						var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
 						var defaultRotation = Quaternion.Euler( 0, 0, 0 );
@@ -592,6 +594,11 @@ public class MainBoardSceneController : MonoBehaviour
 						// TODO: Detect piece capture.
 
 
+						// Restore button states
+						foreach ( var button in allButtons ) {
+							button.interactable = buttonStates[button];
+						}
+
 						_lastSelectedLanePosition = null;
 						_lastSelectedPiece = null;
 						_gameLoopPhase = GameLoopPhase.SecondPieceSelection;
@@ -612,6 +619,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 	}
 
+	private static void NewMethod( out Button[] allButtons, out Dictionary<Button, bool> buttonStates )
+	{
+		allButtons = GameObject.FindObjectsOfType<Button>();
+		buttonStates = allButtons.ToDictionary( b => b, b => b.enabled );
+		foreach ( var button in allButtons ) {
+			button.interactable = false;
+		}
+	}
 
 	private void DoGameLoopPhaseInitialization( Action onInitializing )
 	{

@@ -159,6 +159,17 @@ namespace Assets.Scripts.DomainModel
 				.Union( gameState.Player2.Defenders.Where( a => a.LanePosition == lanePosition ) );
 		}
 
+		public static Dictionary<int, List<GamePiece>> GetGamePiecesAtAllLanePosition( GameState gameState )
+		{
+			return (gameState.Player1.Attackers
+				.Union( gameState.Player1.Defenders )
+				.Union( gameState.Player2.Attackers )
+				.Union( gameState.Player2.Defenders ))
+				.Where( p => p.LanePosition.HasValue )
+				.GroupBy( l => l.LanePosition.Value )
+				.ToDictionary( g => g.Key, g => g.ToList() );
+		}
+
 
 		public static TurnActionValidationResult ValidateTurnAction( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction )
 		{

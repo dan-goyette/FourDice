@@ -17,13 +17,13 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-        int numberOfGames = 100;
+		int numberOfGames = 1;
 
 		[TestInitialize]
 		public void TestInit()
 		{
 			danicaAI1 = new DefenderAI( PlayerType.Player1, false );
-			danicaAI2 = new DefenderAI( PlayerType.Player2, true);
+			danicaAI2 = new DefenderAI( PlayerType.Player2, false );
 		}
 
 		[TestMethod]
@@ -42,7 +42,7 @@ namespace FourDiceGame.Test
 		{
 			FourDice fourDice = new FourDice( "danicaAI" );
 			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
-            var nextMoves = new TurnAction[2];
+			var nextMoves = new TurnAction[2];
 
 			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished ) {
 				if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
@@ -51,18 +51,17 @@ namespace FourDiceGame.Test
 				else {
 					nextMoves = danicaAI2.GetNextMoves( fourDice.GameState );
 				}
-                
 
-                if (numberOfGames == 1)
-                {
-                    Debug.WriteLine(fourDice.ApplyTurnAction(nextMoves[0]));
-                    Debug.WriteLine(fourDice.ApplyTurnAction(nextMoves[1]));
-                    Debug.WriteLine(fourDice.GameState.GetAsciiState());
-                } else
-                {
-                    fourDice.ApplyTurnAction(nextMoves[0]);
-                    fourDice.ApplyTurnAction(nextMoves[1]);
-                }
+
+				if ( numberOfGames == 1 ) {
+					Debug.WriteLine( fourDice.ApplyTurnAction( nextMoves[0] ) );
+					Debug.WriteLine( fourDice.ApplyTurnAction( nextMoves[1] ) );
+					Debug.WriteLine( fourDice.GameState.GetAsciiState() );
+				}
+				else {
+					fourDice.ApplyTurnAction( nextMoves[0] );
+					fourDice.ApplyTurnAction( nextMoves[1] );
+				}
 				fourDice.RerollDice();
 			}
 			var winner = FourDice.GetGameEndResult( fourDice.GameState ).WinningPlayer;
