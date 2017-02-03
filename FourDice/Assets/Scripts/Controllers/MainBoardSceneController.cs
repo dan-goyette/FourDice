@@ -18,6 +18,7 @@ public class MainBoardSceneController : MonoBehaviour
 	public Button StartGameButton;
 	public Button EndTurnButton;
 	public Button RollDiceButton;
+	public Button UndoTurnButton;
 	public Text Player1TurnLabel;
 	public Text Player2TurnLabel;
 	public Text LogText;
@@ -33,6 +34,7 @@ public class MainBoardSceneController : MonoBehaviour
 	List<Vector3> _diceTargetEulerPositions;
 	float _diceAnimationSlerpTime;
 	private bool _animateDice;
+	private GameState _turnStartGameState;
 
 	AttackerController[] _player1Attackers;
 	AttackerController[] _player2Attackers;
@@ -62,6 +64,8 @@ public class MainBoardSceneController : MonoBehaviour
 		_mainCameraStandardPosition = Camera.main.transform.localPosition;
 		_mainCameraTargetPosition = _mainCameraStandardPosition;
 
+
+
 		DiceKeeperCollider.enabled = false;
 
 		CreateDice();
@@ -73,6 +77,7 @@ public class MainBoardSceneController : MonoBehaviour
 		}
 
 		_fourDice = new FourDice( "DefenderBot" );
+		_turnStartGameState = new GameState( "DefenderBot" );
 
 		Player1TurnLabel.gameObject.SetActive( false );
 		Player2TurnLabel.gameObject.SetActive( false );
@@ -82,6 +87,7 @@ public class MainBoardSceneController : MonoBehaviour
 		StartGameButton.gameObject.SetActive( true );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
+		UndoTurnButton.gameObject.SetActive( false );
 
 	}
 
@@ -238,6 +244,7 @@ public class MainBoardSceneController : MonoBehaviour
 				else {
 					movementInfo.Time += Time.deltaTime;
 					movementInfo.GameObject.transform.position = Vector3.Slerp( movementInfo.GameObject.transform.position, movementInfo.TargetPosition, movementInfo.Time );
+					movementInfo.GameObject.transform.rotation = Quaternion.Slerp( movementInfo.GameObject.transform.rotation, movementInfo.TargetRotation, movementInfo.Time );
 				}
 			}
 		}
@@ -268,6 +275,22 @@ public class MainBoardSceneController : MonoBehaviour
 		RollSelectedDice( false, () => {
 			_gameLoopPhase = GameLoopPhase.DieSelection;
 		} );
+	}
+
+
+
+	public void UndoTurnButtonPressed()
+	{
+		_fourDice.GameState = _turnStartGameState;
+		SynchronizeBoardWithGameState();
+		_gameLoopPhase = GameLoopPhase.DieSelection;
+	}
+
+
+
+	public void WriteDebugButtonPressed()
+	{
+		AppendToLogText( _fourDice.GameState.GetAsciiState() );
 	}
 
 
@@ -354,6 +377,8 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 			else if ( _gameLoopPhase == GameLoopPhase.WaitingForDiceRoll ) {
 				DoGameLoopPhaseInitialization( () => {
+					UndoTurnButton.gameObject.SetActive( false );
+
 					SynchronizeGameStateWithBoard();
 					DeselectAllGamePieces();
 					DeselectAllLanePositions();
@@ -369,6 +394,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 				DoGameLoopPhaseInitialization( () => {
+					_fourDice.GameState.CopyTo( _turnStartGameState );
+					UndoTurnButton.gameObject.SetActive( true );
+
 					_lastSelectedPiece = null;
 					_lastSelectedLanePosition = null;
 
@@ -493,6 +521,15 @@ public class MainBoardSceneController : MonoBehaviour
 										var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
 										if ( validationResult.NewLanePosition == targetLanePosition.LanePosition ) {
 											_fourDice.ApplyTurnAction( turnAction );
+
+											if ( validationResult.NewBoardPositionType.HasValue ) {
+												pieceToMove.BoardPositionType = validationResult.NewBoardPositionType.Value;
+											}
+											if ( validationResult.NewLanePosition.HasValue ) {
+												pieceToMove.LanePosition = validationResult.NewLanePosition.Value;
+											}
+
+
 											AppendToLogText( _fourDice.GameState.GetAsciiState() );
 											applied = true;
 
@@ -511,12 +548,18 @@ public class MainBoardSceneController : MonoBehaviour
 						DeselectAllGamePieces();
 						DeselectAllLanePositions();
 
+
+						var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
+						var defaultRotation = Quaternion.Euler( 0, 0, 0 );
+						var attackerHasReachedGoal = (pieceToMove.LanePosition == FourDice.Player1GoalLanePosition || pieceToMove.LanePosition == FourDice.Player2GoalLanePosition);
+
 						_animateDice = true;
 						bool animationSegmentComplete = false;
 						// Move the piece to the desired location.
 						var movement1 = new GameObjectMovementInfo() {
 							GameObject = pieceToMove.gameObject,
 							TargetPosition = pieceToMove.gameObject.transform.position + new Vector3( 0, 3, 0 ),
+							TargetRotation = defaultRotation,
 							OnComplete = () => { animationSegmentComplete = true; }
 						};
 						_gameObjectMovementInfo.Add( movement1 );
@@ -526,7 +569,8 @@ public class MainBoardSceneController : MonoBehaviour
 						animationSegmentComplete = false;
 						var movement2 = new GameObjectMovementInfo() {
 							GameObject = pieceToMove.gameObject,
-							TargetPosition = targetLanePosition.gameObject.transform.position + new Vector3( 0, 3, 0 ),
+							TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
+							TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
 							OnComplete = () => { animationSegmentComplete = true; }
 						};
 						_gameObjectMovementInfo.Add( movement2 );
@@ -535,7 +579,8 @@ public class MainBoardSceneController : MonoBehaviour
 						animationSegmentComplete = false;
 						var movement3 = new GameObjectMovementInfo() {
 							GameObject = pieceToMove.gameObject,
-							TargetPosition = targetLanePosition.gameObject.transform.position,
+							TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
+							TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
 							OnComplete = () => { animationSegmentComplete = true; }
 						};
 						_gameObjectMovementInfo.Add( movement3 );
@@ -613,6 +658,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 		HashSet<GamePieceController> moveablePieces = new HashSet<GamePieceController>();
 
+		SynchronizeGameStateWithBoard();
+
 		foreach ( var piece in attackers.Cast<GamePieceController>().Union( defenders ) ) {
 			piece.SetSelectable( false );
 			piece.SetSelectable( false );
@@ -623,7 +670,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 				foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
 					var turnAction = new TurnAction( dieIndex, direction, piece.PieceType, piece.PieceIndex );
-					SynchronizeGameStateWithBoard();
+
 					var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
 
 					if ( validationResult.IsValidAction ) {
@@ -645,6 +692,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void SynchronizeGameStateWithBoard()
 	{
+		AppendToLogText( "Synchonizing" );
 		_fourDice.GameState.CurrentPlayerType = _activePlayerType;
 
 		for ( var i = 0; i < 4; i++ ) {
@@ -676,6 +724,77 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void SynchronizeBoardWithGameState()
 	{
+		AppendToLogText( "Reverse Synchonizing" );
+		StartCoroutine( BeginSynchronizeBoardWithGameState() );
+	}
+
+	private IEnumerator BeginSynchronizeBoardWithGameState()
+	{
+		// Move any dice.
+
+		_animateDice = true;
+
+		for ( int i = 0; i < 4; i++ ) {
+			_dice[i].SetSelectable( true );
+			_dice[i].SetDeselectable( true );
+			_dice[i].UnchooseDie();
+			_dice[i].Deselect();
+			_dice[i].SetSelectable( false );
+			_dice[i].SetDeselectable( false );
+
+			_diceTargetPositions[i] = _dicePositions[i];
+		}
+
+		for ( var i = 0; i < _player1Attackers.Length; i++ ) {
+			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+				GameObject = _player1Attackers[i].gameObject,
+				TargetPosition = _player1Attackers[i].TurnStartPosition
+			} );
+
+			_player1Attackers[i].BoardPositionType = _fourDice.GameState.Player1.Attackers[i].BoardPositionType;
+			_player1Attackers[i].LanePosition = _fourDice.GameState.Player1.Attackers[i].LanePosition;
+		}
+		for ( var i = 0; i < _player1Defenders.Length; i++ ) {
+			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+				GameObject = _player1Defenders[i].gameObject,
+				TargetPosition = _player1Defenders[i].TurnStartPosition,
+			} );
+
+			_player1Defenders[i].BoardPositionType = _fourDice.GameState.Player1.Defenders[i].BoardPositionType;
+			_player1Defenders[i].LanePosition = _fourDice.GameState.Player1.Defenders[i].LanePosition;
+		}
+
+
+		for ( var i = 0; i < _player2Attackers.Length; i++ ) {
+			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+				GameObject = _player2Attackers[i].gameObject,
+				TargetPosition = _player2Attackers[i].TurnStartPosition,
+			} );
+
+			_player2Attackers[i].BoardPositionType = _fourDice.GameState.Player2.Attackers[i].BoardPositionType;
+			_player2Attackers[i].LanePosition = _fourDice.GameState.Player2.Attackers[i].LanePosition;
+		}
+		for ( var i = 0; i < _player2Defenders.Length; i++ ) {
+			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+				GameObject = _player2Defenders[i].gameObject,
+				TargetPosition = _player2Defenders[i].TurnStartPosition,
+			} );
+
+			_player2Defenders[i].BoardPositionType = _fourDice.GameState.Player2.Defenders[i].BoardPositionType;
+			_player2Defenders[i].LanePosition = _fourDice.GameState.Player2.Defenders[i].LanePosition;
+		}
+
+
+
+		yield return new WaitForSeconds( 1 );
+
+		_animateDice = false;
+
+
+		for ( int i = 0; i < 4; i++ ) {
+			_dice[i].SetSelectable( true );
+			_dice[i].SetDeselectable( true );
+		}
 
 	}
 
@@ -686,6 +805,10 @@ public class MainBoardSceneController : MonoBehaviour
 		Player2TurnLabel.gameObject.SetActive( _activePlayerType == PlayerType.Player2 );
 		_fourDice.EndTurn();
 		SynchronizeGameStateWithBoard();
+
+		foreach ( var gamePiece in _player1Attackers.Cast<GamePieceController>().Union( _player1Defenders ).Union( _player2Attackers ).Union( _player2Defenders ) ) {
+			gamePiece.TurnStartPosition = gamePiece.gameObject.transform.position;
+		}
 	}
 
 	Coroutine awaitFinalDiceRolls;
@@ -840,6 +963,7 @@ class GameObjectMovementInfo
 	public GameObject GameObject;
 	public float Time;
 	public Vector3 TargetPosition;
+	public Quaternion TargetRotation;
 
 	public Action OnComplete;
 }

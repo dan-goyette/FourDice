@@ -15,6 +15,8 @@ public abstract class GamePieceController : SelectableObjectController
 	public Material[] Player1ReplacementMaterials;
 	public Material[] Player2ReplacementMaterials;
 
+	public Vector3 TurnStartPosition;
+	public Quaternion TurnStartRotation;
 
 	public abstract PieceType PieceType { get; }
 
