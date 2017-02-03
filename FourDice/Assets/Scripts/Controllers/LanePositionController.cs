@@ -35,6 +35,8 @@ public class LanePositionController : SelectableObjectController
 
 			mesh.materials = materials;
 		}
+
+		InitializeMaterials();
 	}
 
 	// Update is called once per frame

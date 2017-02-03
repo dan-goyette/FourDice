@@ -18,6 +18,7 @@ public abstract class GamePieceController : SelectableObjectController
 
 	public Vector3 TurnStartPosition;
 	public Quaternion TurnStartRotation;
+	public bool? TurnStartInUpperSlot;
 
 	public abstract PieceType PieceType { get; }
 
@@ -49,6 +50,8 @@ public abstract class GamePieceController : SelectableObjectController
 		}
 
 		mesh.materials = materials;
+
+		InitializeMaterials();
 	}
 
 	// Update is called once per frame

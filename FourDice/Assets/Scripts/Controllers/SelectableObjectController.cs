@@ -16,7 +16,9 @@ public abstract class SelectableObjectController : MonoBehaviour
 	public bool CanDeselect { get; private set; }
 
 
-
+	private Material[] _materials;
+	private Color _targetEmissionColor;
+	private float _emissionTimeElapsed;
 
 
 	protected virtual void Awake()
@@ -35,12 +37,24 @@ public abstract class SelectableObjectController : MonoBehaviour
 		this.IsSelected = false;
 		this.CanSelect = false;
 		this.CanDeselect = true;
+
+		InitializeMaterials();
+	}
+
+	protected void InitializeMaterials()
+	{
+
+		_materials = gameObject.GetComponent<MeshRenderer>().materials;
 	}
 
 	// Update is called once per frame
+	private Color _selectedEmissionColor = new Color( .6f, .1f, .6f );
 	protected virtual void Update()
 	{
-
+		foreach ( var material in _materials ) {
+			material.SetColor( "_EmissionColor", Color.Lerp( Color.black, _targetEmissionColor, (Mathf.Sin( _emissionTimeElapsed * Mathf.PI ) / 2.0f) + 0.5f ) );
+		}
+		_emissionTimeElapsed += Time.deltaTime;
 	}
 
 
@@ -93,17 +107,21 @@ public abstract class SelectableObjectController : MonoBehaviour
 	{
 		if ( this.IsSelected ) {
 			SelectableParticleSystem.Stop();
-
+			_targetEmissionColor = Color.black;
+			_emissionTimeElapsed = 0;
 			SelectionParticleSystem.Play();
 		}
 		else if ( this.CanSelect ) {
 			SelectionParticleSystem.Stop();
 
-			SelectableParticleSystem.Play();
+			_targetEmissionColor = _selectedEmissionColor;
+			_emissionTimeElapsed = 0;
+			//			SelectableParticleSystem.Play();
 		}
 		else {
 			SelectableParticleSystem.Stop();
-
+			_targetEmissionColor = Color.black;
+			_emissionTimeElapsed = 0;
 			SelectionParticleSystem.Stop();
 		}
 	}

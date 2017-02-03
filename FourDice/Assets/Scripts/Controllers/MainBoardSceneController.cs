@@ -158,7 +158,7 @@ public class MainBoardSceneController : MonoBehaviour
 			GameObject die = (GameObject)Instantiate( Resources.Load( "Die" ) );
 			var dieController = die.GetComponent<DieController>();
 			_dice[i] = dieController;
-			die.transform.position = _dicePositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, -2 );
+			die.transform.position = _dicePositions[i] = new Vector3( -3.75f + 2.5f * i, .5f, -2 );
 			_dicePreRollPositions[i] = new Vector3( -4 + 2.5f * i, 8f, -11 );
 			die.GetComponent<Rigidbody>().isKinematic = true;
 			dieController.OnSelectionChanged += DieController_OnSelectionChanged;
@@ -537,8 +537,45 @@ public class MainBoardSceneController : MonoBehaviour
 						using ( new DisabledButtonInteractabilityScope() ) {
 
 							var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
-							var defaultRotation = Quaternion.Euler( 0, 0, 0 );
 							var attackerHasReachedGoal = (pieceToMove.LanePosition == FourDice.Player1GoalLanePosition || pieceToMove.LanePosition == FourDice.Player2GoalLanePosition);
+
+							// Determine if we should land in the upper or lower slot. 
+
+							Vector3 targetLandingPosition = new Vector3();
+
+							if ( targetLanePosition.LanePosition == FourDice.Player1GoalLanePosition ) {
+								targetLandingPosition = InitialPlayer1AttackerPlaceHolders[pieceToMove.PieceIndex].transform.position - new Vector3( 0.5f, 0, 0.5f );
+							}
+							else if ( targetLanePosition.LanePosition == FourDice.Player2GoalLanePosition ) {
+								targetLandingPosition = InitialPlayer2AttackerPlaceHolders[pieceToMove.PieceIndex].transform.position + new Vector3( 0.5f, 0, -0.5f );
+							}
+							else {
+								// Start with the center of the lane position.
+								targetLandingPosition = targetLanePosition.gameObject.transform.position;
+
+								var otherPiecesAtSlot = AllGamePieces().Where( g => g != pieceToMove
+									&& g.LanePosition == targetLanePosition.LanePosition ).ToList();
+								if ( otherPiecesAtSlot.Count == 0 ) {
+									// Nothing is here. Upper slot.
+									pieceToMove.InUpperSlot = true;
+								}
+								else if ( otherPiecesAtSlot.Count == 1 ) {
+									// One other piece is here. Go to the other slot.
+									pieceToMove.InUpperSlot = !otherPiecesAtSlot[0].InUpperSlot.Value;
+								}
+								else {
+									// Capture the piece according to the turn action result.
+									var capturedPiece = _activePlayerType == PlayerType.Player1
+										? _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value]
+										: _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value];
+									pieceToMove.InUpperSlot = capturedPiece.InUpperSlot;
+								}
+
+								targetLandingPosition += pieceToMove.InUpperSlot == true
+									? new Vector3( 0, 0, 1f )
+									: new Vector3( 0, 0, -1f );
+							}
+
 
 
 							bool animationSegmentComplete = false;
@@ -546,7 +583,7 @@ public class MainBoardSceneController : MonoBehaviour
 							var movement1 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
 								TargetPosition = pieceToMove.gameObject.transform.position + new Vector3( 0, 3, 0 ),
-								TargetRotation = defaultRotation,
+								TargetRotation = GameObjectTransformAnimation.DefaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
 							_gameObjectAnimations.Add( movement1 );
@@ -556,8 +593,8 @@ public class MainBoardSceneController : MonoBehaviour
 							animationSegmentComplete = false;
 							var movement2 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
-								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
-								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
+								TargetPosition = targetLandingPosition + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
+								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : GameObjectTransformAnimation.DefaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
 							_gameObjectAnimations.Add( movement2 );
@@ -566,8 +603,8 @@ public class MainBoardSceneController : MonoBehaviour
 							animationSegmentComplete = false;
 							var movement3 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
-								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
-								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
+								TargetPosition = targetLandingPosition + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
+								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : GameObjectTransformAnimation.DefaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
 							_gameObjectAnimations.Add( movement3 );
@@ -590,12 +627,13 @@ public class MainBoardSceneController : MonoBehaviour
 								var movement = new GameObjectTransformAnimation() {
 									GameObject = attacker.gameObject,
 									TargetPosition = targetPosition,
-									TargetRotation = defaultRotation,
+									TargetRotation = GameObjectTransformAnimation.DefaultRotation,
 									OnComplete = () => { animationSegmentComplete = true; }
 								};
 								_gameObjectAnimations.Add( movement );
 
 								attacker.LanePosition = null;
+								attacker.InUpperSlot = null;
 								attacker.BoardPositionType = BoardPositionType.OwnGoal;
 
 								yield return new WaitUntil( () => animationSegmentComplete );
@@ -630,7 +668,21 @@ public class MainBoardSceneController : MonoBehaviour
 
 	}
 
-
+	private IEnumerable<GamePieceController> AllGamePieces()
+	{
+		foreach ( var gamePiece in _player1Attackers ) {
+			yield return gamePiece;
+		}
+		foreach ( var gamePiece in _player1Defenders ) {
+			yield return gamePiece;
+		}
+		foreach ( var gamePiece in _player2Attackers ) {
+			yield return gamePiece;
+		}
+		foreach ( var gamePiece in _player2Defenders ) {
+			yield return gamePiece;
+		}
+	}
 
 
 	private void DoGameLoopPhaseInitialization( Action onInitializing )
@@ -771,7 +823,8 @@ public class MainBoardSceneController : MonoBehaviour
 		for ( var i = 0; i < _player1Attackers.Length; i++ ) {
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player1Attackers[i].gameObject,
-				TargetPosition = _player1Attackers[i].TurnStartPosition
+				TargetPosition = _player1Attackers[i].TurnStartPosition,
+				TargetRotation = _player1Attackers[i].TurnStartRotation
 			} );
 
 			_player1Attackers[i].BoardPositionType = _fourDice.GameState.Player1.Attackers[i].BoardPositionType;
@@ -781,6 +834,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player1Defenders[i].gameObject,
 				TargetPosition = _player1Defenders[i].TurnStartPosition,
+				TargetRotation = _player1Defenders[i].TurnStartRotation
 			} );
 
 			_player1Defenders[i].BoardPositionType = _fourDice.GameState.Player1.Defenders[i].BoardPositionType;
@@ -792,6 +846,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player2Attackers[i].gameObject,
 				TargetPosition = _player2Attackers[i].TurnStartPosition,
+				TargetRotation = _player2Attackers[i].TurnStartRotation
 			} );
 
 			_player2Attackers[i].BoardPositionType = _fourDice.GameState.Player2.Attackers[i].BoardPositionType;
@@ -801,6 +856,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player2Defenders[i].gameObject,
 				TargetPosition = _player2Defenders[i].TurnStartPosition,
+				TargetRotation = _player2Defenders[i].TurnStartRotation
 			} );
 
 			_player2Defenders[i].BoardPositionType = _fourDice.GameState.Player2.Defenders[i].BoardPositionType;
@@ -829,6 +885,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 		foreach ( var gamePiece in _player1Attackers.Cast<GamePieceController>().Union( _player1Defenders ).Union( _player2Attackers ).Union( _player2Defenders ) ) {
 			gamePiece.TurnStartPosition = gamePiece.gameObject.transform.position;
+			gamePiece.TurnStartRotation = gamePiece.gameObject.transform.rotation;
+			gamePiece.TurnStartInUpperSlot = gamePiece.InUpperSlot;
 		}
 	}
 
@@ -915,13 +973,12 @@ public class MainBoardSceneController : MonoBehaviour
 				if ( _dice.Select( d => d.GetDieValue() ).Any( dv => dv == null ) ) {
 					AppendToLogText( "Dice landed weird. Rerolling." );
 					shouldReroll = true;
-					break;
-				}
-				else {
-
 				}
 				break;
 			}
+		}
+		foreach ( var die in _dice ) {
+			die.GetComponent<Rigidbody>().isKinematic = true;
 		}
 
 		if ( shouldReroll ) {
@@ -952,7 +1009,7 @@ public class MainBoardSceneController : MonoBehaviour
 				} );
 
 
-				die.GetComponent<Rigidbody>().isKinematic = true;
+
 
 
 			}
@@ -1004,6 +1061,8 @@ class GameObjectTransformAnimation
 
 
 	public Action OnComplete;
+
+	public static Quaternion DefaultRotation = Quaternion.Euler( 0, 0, 0 );
 }
 
 class DisabledButtonInteractabilityScope : IDisposable

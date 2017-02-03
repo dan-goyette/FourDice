@@ -17,7 +17,7 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-		int numberOfGames = 1;
+		int numberOfGames = 10;
 
 		[TestInitialize]
 		public void TestInit()

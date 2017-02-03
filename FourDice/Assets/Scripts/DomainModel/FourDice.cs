@@ -153,21 +153,38 @@ namespace Assets.Scripts.DomainModel
 
 		public static IEnumerable<GamePiece> GetGamePiecesAtLanePosition( GameState gameState, int lanePosition )
 		{
-			return gameState.Player1.Attackers.Where( a => a.LanePosition == lanePosition )
-				.Union( gameState.Player1.Defenders.Where( a => a.LanePosition == lanePosition ) )
-				.Union( gameState.Player2.Attackers.Where( a => a.LanePosition == lanePosition ) )
-				.Union( gameState.Player2.Defenders.Where( a => a.LanePosition == lanePosition ) );
+			for ( int i = 0; i < gameState.Player1.Attackers.Length; i++ ) {
+				if ( gameState.Player1.Attackers[i].LanePosition == lanePosition ) {
+					yield return gameState.Player1.Attackers[i];
+				}
+			}
+
+			for ( int i = 0; i < gameState.Player1.Defenders.Length; i++ ) {
+				if ( gameState.Player1.Defenders[i].LanePosition == lanePosition ) {
+					yield return gameState.Player1.Defenders[i];
+				}
+			}
+
+			for ( int i = 0; i < gameState.Player2.Attackers.Length; i++ ) {
+				if ( gameState.Player2.Attackers[i].LanePosition == lanePosition ) {
+					yield return gameState.Player2.Attackers[i];
+				}
+			}
+
+			for ( int i = 0; i < gameState.Player2.Defenders.Length; i++ ) {
+				if ( gameState.Player2.Defenders[i].LanePosition == lanePosition ) {
+					yield return gameState.Player2.Defenders[i];
+				}
+			}
 		}
 
 		public static Dictionary<int, List<GamePiece>> GetGamePiecesAtAllLanePosition( GameState gameState )
 		{
-			return (gameState.Player1.Attackers
-				.Union( gameState.Player1.Defenders )
-				.Union( gameState.Player2.Attackers )
-				.Union( gameState.Player2.Defenders ))
-				.Where( p => p.LanePosition.HasValue )
-				.GroupBy( l => l.LanePosition.Value )
-				.ToDictionary( g => g.Key, g => g.ToList() );
+			Dictionary<int, List<GamePiece>> retval = new Dictionary<int, List<GamePiece>>();
+			for ( int i = Player1GoalLanePosition + 1; i < Player1GoalLanePosition; i++ ) {
+				retval[i] = GetGamePiecesAtLanePosition( gameState, i ).ToList();
+			}
+			return retval;
 		}
 
 
