@@ -281,9 +281,11 @@ public class MainBoardSceneController : MonoBehaviour
 
 	public void UndoTurnButtonPressed()
 	{
-		_fourDice.GameState = _turnStartGameState;
+		_turnStartGameState.CopyTo( _fourDice.GameState );
+		_fourDice.ClearLastTurnAction();
 		SynchronizeBoardWithGameState();
 		_gameLoopPhase = GameLoopPhase.DieSelection;
+		AppendToLogText( _fourDice.GameState.GetAsciiState() );
 	}
 
 
@@ -308,45 +310,47 @@ public class MainBoardSceneController : MonoBehaviour
 		int player1Score = 0;
 		int player2Score = 0;
 
-		while ( player1Score == player2Score ) {
+		using ( new DisabledButtonInteractabilityScope() ) {
 
-			// Roll player 1's dice
-			_dice[0].SetSelectable( true );
-			_dice[0].Select();
-			_dice[1].SetSelectable( true );
-			_dice[1].Select();
-			_player1InitialDiceRolling = true;
+			while ( player1Score == player2Score ) {
 
-			RollSelectedDice( isInitialDiceRoll: true, callback: () => _player1InitialDiceRolling = false );
-			_dice[0].SetSelectable( false );
-			_dice[0].Deselect();
-			_dice[1].SetSelectable( false );
-			_dice[1].Deselect();
+				// Roll player 1's dice
+				_dice[0].SetSelectable( true );
+				_dice[0].Select();
+				_dice[1].SetSelectable( true );
+				_dice[1].Select();
+				_player1InitialDiceRolling = true;
 
-			yield return new WaitUntil( () => !_player1InitialDiceRolling );
+				RollSelectedDice( isInitialDiceRoll: true, callback: () => _player1InitialDiceRolling = false );
+				_dice[0].SetSelectable( false );
+				_dice[0].Deselect();
+				_dice[1].SetSelectable( false );
+				_dice[1].Deselect();
 
-			_dice[2].SetSelectable( true );
-			_dice[2].Select();
-			_dice[3].SetSelectable( true );
-			_dice[3].Select();
-			_player2InitialDiceRolling = true;
+				yield return new WaitUntil( () => !_player1InitialDiceRolling );
 
-			RollSelectedDice( isInitialDiceRoll: true, callback: () => _player2InitialDiceRolling = false );
-			_dice[2].SetSelectable( false );
-			_dice[2].Deselect();
-			_dice[3].SetSelectable( false );
-			_dice[3].Deselect();
+				_dice[2].SetSelectable( true );
+				_dice[2].Select();
+				_dice[3].SetSelectable( true );
+				_dice[3].Select();
+				_player2InitialDiceRolling = true;
 
-			yield return new WaitUntil( () => !_player2InitialDiceRolling );
+				RollSelectedDice( isInitialDiceRoll: true, callback: () => _player2InitialDiceRolling = false );
+				_dice[2].SetSelectable( false );
+				_dice[2].Deselect();
+				_dice[3].SetSelectable( false );
+				_dice[3].Deselect();
 
-			player1Score = _dice[0].GetDieValue().Value + _dice[1].GetDieValue().Value;
-			player2Score = _dice[2].GetDieValue().Value + _dice[3].GetDieValue().Value;
+				yield return new WaitUntil( () => !_player2InitialDiceRolling );
 
-			if ( player1Score == player2Score ) {
-				AppendToLogText( "Tie score. Rerolling." );
+				player1Score = _dice[0].GetDieValue().Value + _dice[1].GetDieValue().Value;
+				player2Score = _dice[2].GetDieValue().Value + _dice[3].GetDieValue().Value;
+
+				if ( player1Score == player2Score ) {
+					AppendToLogText( "Tie score. Rerolling." );
+				}
 			}
 		}
-
 
 		SetActivePlayer( player1Score > player2Score ? PlayerType.Player1 : PlayerType.Player2 );
 
@@ -510,9 +514,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 						// Apply the action
 
-						var applied = false;
+						GameLogEntry appliedGameLogEntry = null;
 						for ( var i = 0; i < _dice.Length; i++ ) {
-							if ( !applied ) {
+							if ( appliedGameLogEntry == null ) {
 								var die = _dice[i];
 								if ( die.IsSelected ) {
 
@@ -520,7 +524,7 @@ public class MainBoardSceneController : MonoBehaviour
 										var turnAction = new TurnAction( i, direction, pieceToMove.PieceType, pieceToMove.PieceIndex );
 										var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
 										if ( validationResult.NewLanePosition == targetLanePosition.LanePosition ) {
-											_fourDice.ApplyTurnAction( turnAction );
+											appliedGameLogEntry = _fourDice.ApplyTurnAction( turnAction );
 
 											if ( validationResult.NewBoardPositionType.HasValue ) {
 												pieceToMove.BoardPositionType = validationResult.NewBoardPositionType.Value;
@@ -531,7 +535,6 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 											AppendToLogText( _fourDice.GameState.GetAsciiState() );
-											applied = true;
 
 											// Mark the die as chosen, and slide it away.
 											die.ChooseDie();
@@ -547,56 +550,85 @@ public class MainBoardSceneController : MonoBehaviour
 						// Remove selections
 						DeselectAllGamePieces();
 						DeselectAllLanePositions();
-						Button[] allButtons;
-						Dictionary<Button, bool> buttonStates;
-						NewMethod( out allButtons, out buttonStates );
-
-						var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
-						var defaultRotation = Quaternion.Euler( 0, 0, 0 );
-						var attackerHasReachedGoal = (pieceToMove.LanePosition == FourDice.Player1GoalLanePosition || pieceToMove.LanePosition == FourDice.Player2GoalLanePosition);
-
-						_animateDice = true;
-						bool animationSegmentComplete = false;
-						// Move the piece to the desired location.
-						var movement1 = new GameObjectMovementInfo() {
-							GameObject = pieceToMove.gameObject,
-							TargetPosition = pieceToMove.gameObject.transform.position + new Vector3( 0, 3, 0 ),
-							TargetRotation = defaultRotation,
-							OnComplete = () => { animationSegmentComplete = true; }
-						};
-						_gameObjectMovementInfo.Add( movement1 );
-
-						yield return new WaitUntil( () => animationSegmentComplete );
-
-						animationSegmentComplete = false;
-						var movement2 = new GameObjectMovementInfo() {
-							GameObject = pieceToMove.gameObject,
-							TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
-							TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
-							OnComplete = () => { animationSegmentComplete = true; }
-						};
-						_gameObjectMovementInfo.Add( movement2 );
-						yield return new WaitUntil( () => animationSegmentComplete );
-
-						animationSegmentComplete = false;
-						var movement3 = new GameObjectMovementInfo() {
-							GameObject = pieceToMove.gameObject,
-							TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
-							TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
-							OnComplete = () => { animationSegmentComplete = true; }
-						};
-						_gameObjectMovementInfo.Add( movement3 );
-						yield return new WaitUntil( () => animationSegmentComplete );
 
 
-						_animateDice = false;
-
-						// TODO: Detect piece capture.
+						using ( new DisabledButtonInteractabilityScope() ) {
 
 
-						// Restore button states
-						foreach ( var button in allButtons ) {
-							button.interactable = buttonStates[button];
+
+
+							var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
+							var defaultRotation = Quaternion.Euler( 0, 0, 0 );
+							var attackerHasReachedGoal = (pieceToMove.LanePosition == FourDice.Player1GoalLanePosition || pieceToMove.LanePosition == FourDice.Player2GoalLanePosition);
+
+
+							bool animationSegmentComplete = false;
+							// Move the piece to the desired location.
+							var movement1 = new GameObjectMovementInfo() {
+								GameObject = pieceToMove.gameObject,
+								TargetPosition = pieceToMove.gameObject.transform.position + new Vector3( 0, 3, 0 ),
+								TargetRotation = defaultRotation,
+								OnComplete = () => { animationSegmentComplete = true; }
+							};
+							_gameObjectMovementInfo.Add( movement1 );
+
+							yield return new WaitUntil( () => animationSegmentComplete );
+
+							animationSegmentComplete = false;
+							var movement2 = new GameObjectMovementInfo() {
+								GameObject = pieceToMove.gameObject,
+								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
+								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
+								OnComplete = () => { animationSegmentComplete = true; }
+							};
+							_gameObjectMovementInfo.Add( movement2 );
+							yield return new WaitUntil( () => animationSegmentComplete );
+
+							animationSegmentComplete = false;
+							var movement3 = new GameObjectMovementInfo() {
+								GameObject = pieceToMove.gameObject,
+								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
+								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
+								OnComplete = () => { animationSegmentComplete = true; }
+							};
+							_gameObjectMovementInfo.Add( movement3 );
+							yield return new WaitUntil( () => animationSegmentComplete );
+
+
+
+							if ( appliedGameLogEntry.CapturedAttackerIndex.HasValue ) {
+								// Capture the piece and send it home.
+								var attacker = _activePlayerType == PlayerType.Player1
+									? _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value]
+									: _player1Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value];
+								var targetPosition = _activePlayerType == PlayerType.Player1
+									? InitialPlayer2AttackerPlaceHolders[appliedGameLogEntry.CapturedAttackerIndex.Value].transform.position
+									: InitialPlayer1AttackerPlaceHolders[appliedGameLogEntry.CapturedAttackerIndex.Value].transform.position;
+
+
+								animationSegmentComplete = false;
+								// Move the piece to the desired location.
+								var movement = new GameObjectMovementInfo() {
+									GameObject = attacker.gameObject,
+									TargetPosition = targetPosition,
+									TargetRotation = defaultRotation,
+									OnComplete = () => { animationSegmentComplete = true; }
+								};
+								_gameObjectMovementInfo.Add( movement );
+
+								attacker.LanePosition = null;
+								attacker.BoardPositionType = BoardPositionType.OwnGoal;
+
+								yield return new WaitUntil( () => animationSegmentComplete );
+
+							}
+
+
+
+
+
+
+
 						}
 
 						_lastSelectedLanePosition = null;
@@ -619,14 +651,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 	}
 
-	private static void NewMethod( out Button[] allButtons, out Dictionary<Button, bool> buttonStates )
-	{
-		allButtons = GameObject.FindObjectsOfType<Button>();
-		buttonStates = allButtons.ToDictionary( b => b, b => b.enabled );
-		foreach ( var button in allButtons ) {
-			button.interactable = false;
-		}
-	}
+
+
 
 	private void DoGameLoopPhaseInitialization( Action onInitializing )
 	{
@@ -712,6 +738,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		for ( var i = 0; i < 4; i++ ) {
 			_fourDice.GameState.Dice[i].Value = _dice[i].GetDieValue().Value;
+			_fourDice.GameState.Dice[i].IsChosen = _dice[i].IsChosen;
 		}
 
 		// Player 1
@@ -974,13 +1001,34 @@ class GameObjectMovementInfo
 	public GameObjectMovementInfo()
 	{
 		Time = 0;
+		var das = GameObject.FindObjectsOfType<Button>();
 	}
 	public GameObject GameObject;
 	public float Time;
 	public Vector3 TargetPosition;
 	public Quaternion TargetRotation;
 
+
 	public Action OnComplete;
+}
+
+class DisabledButtonInteractabilityScope : IDisposable
+{
+	Dictionary<Button, bool> _buttons;
+
+	public DisabledButtonInteractabilityScope()
+	{
+		_buttons = GameObject.FindObjectsOfType<Button>().ToDictionary( b => b, b => b.enabled );
+		foreach ( var button in _buttons.Keys ) {
+			button.interactable = false;
+		}
+	}
+	public void Dispose()
+	{
+		foreach ( var kvp in _buttons ) {
+			kvp.Key.interactable = kvp.Value;
+		}
+	}
 }
 
 

@@ -332,6 +332,11 @@ namespace Assets.Scripts.DomainModel
 
 		}
 
+		public void ClearLastTurnAction()
+		{
+			_lastTurnAction = null;
+		}
+
 		public PlayerType RollToSeeWhoGoesFirst()
 		{
 			int player1Total = 0;

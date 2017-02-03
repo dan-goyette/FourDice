@@ -10,6 +10,7 @@ public abstract class GamePieceController : SelectableObjectController
 	public int PieceIndex;
 	public int? LanePosition;
 	public BoardPositionType BoardPositionType;
+	public bool? InUpperSlot;
 
 	public Material[] MaterialsToReplace;
 	public Material[] Player1ReplacementMaterials;
