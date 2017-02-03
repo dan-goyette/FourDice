@@ -24,16 +24,11 @@ public class MainBoardSceneController : MonoBehaviour
 	public Text LogText;
 
 	Vector3 _mainCameraStandardPosition;
-	Vector3 _mainCameraTargetPosition;
-	float _mainCameraSlerpTime;
 
 	DieController[] _dice;
 	Vector3[] _dicePositions;
 	Vector3[] _dicePreRollPositions;
-	Vector3[] _diceTargetPositions;
-	List<Vector3> _diceTargetEulerPositions;
-	float _diceAnimationSlerpTime;
-	private bool _animateDice;
+
 	private GameState _turnStartGameState;
 
 	AttackerController[] _player1Attackers;
@@ -48,7 +43,7 @@ public class MainBoardSceneController : MonoBehaviour
 	private PlayerType _activePlayerType;
 	private GameLoopPhase _gameLoopPhase;
 
-	private List<GameObjectMovementInfo> _gameObjectMovementInfo;
+	private List<GameObjectTransformAnimation> _gameObjectAnimations;
 
 	// Use this for initialization
 	void Start()
@@ -56,14 +51,10 @@ public class MainBoardSceneController : MonoBehaviour
 		_dice = new DieController[4];
 		_dicePositions = new Vector3[4];
 		_dicePreRollPositions = new Vector3[4];
-		_diceTargetPositions = new Vector3[4];
-		_diceTargetEulerPositions = new List<Vector3>();
 
-		_gameObjectMovementInfo = new List<GameObjectMovementInfo>();
+		_gameObjectAnimations = new List<GameObjectTransformAnimation>();
 
-		_mainCameraStandardPosition = Camera.main.transform.localPosition;
-		_mainCameraTargetPosition = _mainCameraStandardPosition;
-
+		_mainCameraStandardPosition = Camera.main.transform.position;
 
 
 		DiceKeeperCollider.enabled = false;
@@ -167,7 +158,7 @@ public class MainBoardSceneController : MonoBehaviour
 			GameObject die = (GameObject)Instantiate( Resources.Load( "Die" ) );
 			var dieController = die.GetComponent<DieController>();
 			_dice[i] = dieController;
-			die.transform.position = _dicePositions[i] = _diceTargetPositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, -2 );
+			die.transform.position = _dicePositions[i] = new Vector3( -3.75f + 2.5f * i, .25f, -2 );
 			_dicePreRollPositions[i] = new Vector3( -4 + 2.5f * i, 8f, -11 );
 			die.GetComponent<Rigidbody>().isKinematic = true;
 			dieController.OnSelectionChanged += DieController_OnSelectionChanged;
@@ -216,35 +207,21 @@ public class MainBoardSceneController : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		if ( _animateDice ) {
-			_diceAnimationSlerpTime += Time.deltaTime;
-			for ( var i = 0; i < 4; i++ ) {
-				_dice[i].transform.localPosition = Vector3.Slerp( _dice[i].transform.localPosition, _diceTargetPositions[i], _diceAnimationSlerpTime );
-			}
-
-			if ( _diceTargetEulerPositions.Any() ) {
-				for ( var i = 0; i < 4; i++ ) {
-					_dice[i].transform.localRotation = Quaternion.Slerp( _dice[i].transform.localRotation, Quaternion.Euler( _diceTargetEulerPositions[i].x, _diceTargetEulerPositions[i].y, _diceTargetEulerPositions[i].z ), _diceAnimationSlerpTime );
-				}
-			}
-		}
-		if ( _mainCameraTargetPosition != Camera.main.transform.localPosition ) {
-			_mainCameraSlerpTime += Time.deltaTime / 2f;
-			Camera.main.transform.localPosition = Vector3.Slerp( Camera.main.transform.localPosition, _mainCameraTargetPosition, _mainCameraSlerpTime );
-		}
-
-		if ( _gameObjectMovementInfo.Count > 0 ) {
-			foreach ( var movementInfo in _gameObjectMovementInfo.ToList() ) {
+		if ( _gameObjectAnimations.Count > 0 ) {
+			foreach ( var movementInfo in _gameObjectAnimations.ToList() ) {
 				if ( movementInfo.GameObject.transform.position == movementInfo.TargetPosition ) {
-					_gameObjectMovementInfo.Remove( movementInfo );
+					_gameObjectAnimations.Remove( movementInfo );
 					if ( movementInfo.OnComplete != null ) {
 						movementInfo.OnComplete();
 					}
 				}
 				else {
-					movementInfo.Time += Time.deltaTime;
-					movementInfo.GameObject.transform.position = Vector3.Slerp( movementInfo.GameObject.transform.position, movementInfo.TargetPosition, movementInfo.Time );
-					movementInfo.GameObject.transform.rotation = Quaternion.Slerp( movementInfo.GameObject.transform.rotation, movementInfo.TargetRotation, movementInfo.Time );
+					movementInfo.ElapsedAnimationTime += Time.deltaTime * movementInfo.AnimationSpeed;
+					movementInfo.GameObject.transform.position = Vector3.Slerp( movementInfo.GameObject.transform.position, movementInfo.TargetPosition, movementInfo.ElapsedAnimationTime );
+					if ( movementInfo.TargetRotation.HasValue ) {
+						movementInfo.GameObject.transform.rotation = Quaternion.Slerp( movementInfo.GameObject.transform.rotation, movementInfo.TargetRotation.Value, movementInfo.ElapsedAnimationTime );
+
+					}
 				}
 			}
 		}
@@ -538,8 +515,13 @@ public class MainBoardSceneController : MonoBehaviour
 
 											// Mark the die as chosen, and slide it away.
 											die.ChooseDie();
-											_diceTargetPositions[i] = die.gameObject.transform.position - new Vector3( 0, 0, 1.5f );
-											_diceAnimationSlerpTime = 0;
+
+											_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+												GameObject = die.gameObject,
+												TargetPosition = die.gameObject.transform.position - new Vector3( 0, 0, 1.5f )
+											} );
+
+
 											break;
 										}
 									}
@@ -554,9 +536,6 @@ public class MainBoardSceneController : MonoBehaviour
 
 						using ( new DisabledButtonInteractabilityScope() ) {
 
-
-
-
 							var finalAttackerRotation = Quaternion.Euler( 0, 0, 180 );
 							var defaultRotation = Quaternion.Euler( 0, 0, 0 );
 							var attackerHasReachedGoal = (pieceToMove.LanePosition == FourDice.Player1GoalLanePosition || pieceToMove.LanePosition == FourDice.Player2GoalLanePosition);
@@ -564,34 +543,34 @@ public class MainBoardSceneController : MonoBehaviour
 
 							bool animationSegmentComplete = false;
 							// Move the piece to the desired location.
-							var movement1 = new GameObjectMovementInfo() {
+							var movement1 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
 								TargetPosition = pieceToMove.gameObject.transform.position + new Vector3( 0, 3, 0 ),
 								TargetRotation = defaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
-							_gameObjectMovementInfo.Add( movement1 );
+							_gameObjectAnimations.Add( movement1 );
 
 							yield return new WaitUntil( () => animationSegmentComplete );
 
 							animationSegmentComplete = false;
-							var movement2 = new GameObjectMovementInfo() {
+							var movement2 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
 								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 6, 0 ) : new Vector3( 0, 3, 0 )),
 								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
-							_gameObjectMovementInfo.Add( movement2 );
+							_gameObjectAnimations.Add( movement2 );
 							yield return new WaitUntil( () => animationSegmentComplete );
 
 							animationSegmentComplete = false;
-							var movement3 = new GameObjectMovementInfo() {
+							var movement3 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
 								TargetPosition = targetLanePosition.gameObject.transform.position + (attackerHasReachedGoal ? new Vector3( 0, 1.5f, 0 ) : new Vector3( 0, 0, 0 )),
 								TargetRotation = attackerHasReachedGoal ? finalAttackerRotation : defaultRotation,
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
-							_gameObjectMovementInfo.Add( movement3 );
+							_gameObjectAnimations.Add( movement3 );
 							yield return new WaitUntil( () => animationSegmentComplete );
 
 
@@ -608,13 +587,13 @@ public class MainBoardSceneController : MonoBehaviour
 
 								animationSegmentComplete = false;
 								// Move the piece to the desired location.
-								var movement = new GameObjectMovementInfo() {
+								var movement = new GameObjectTransformAnimation() {
 									GameObject = attacker.gameObject,
 									TargetPosition = targetPosition,
 									TargetRotation = defaultRotation,
 									OnComplete = () => { animationSegmentComplete = true; }
 								};
-								_gameObjectMovementInfo.Add( movement );
+								_gameObjectAnimations.Add( movement );
 
 								attacker.LanePosition = null;
 								attacker.BoardPositionType = BoardPositionType.OwnGoal;
@@ -774,7 +753,6 @@ public class MainBoardSceneController : MonoBehaviour
 	{
 		// Move any dice.
 
-		_animateDice = true;
 
 		for ( int i = 0; i < 4; i++ ) {
 			_dice[i].SetSelectable( true );
@@ -784,11 +762,14 @@ public class MainBoardSceneController : MonoBehaviour
 			_dice[i].SetSelectable( false );
 			_dice[i].SetDeselectable( false );
 
-			_diceTargetPositions[i] = _dicePositions[i];
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+				GameObject = _dice[i].gameObject,
+				TargetPosition = _dicePositions[i]
+			} );
 		}
 
 		for ( var i = 0; i < _player1Attackers.Length; i++ ) {
-			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player1Attackers[i].gameObject,
 				TargetPosition = _player1Attackers[i].TurnStartPosition
 			} );
@@ -797,7 +778,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_player1Attackers[i].LanePosition = _fourDice.GameState.Player1.Attackers[i].LanePosition;
 		}
 		for ( var i = 0; i < _player1Defenders.Length; i++ ) {
-			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player1Defenders[i].gameObject,
 				TargetPosition = _player1Defenders[i].TurnStartPosition,
 			} );
@@ -808,7 +789,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 		for ( var i = 0; i < _player2Attackers.Length; i++ ) {
-			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player2Attackers[i].gameObject,
 				TargetPosition = _player2Attackers[i].TurnStartPosition,
 			} );
@@ -817,7 +798,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_player2Attackers[i].LanePosition = _fourDice.GameState.Player2.Attackers[i].LanePosition;
 		}
 		for ( var i = 0; i < _player2Defenders.Length; i++ ) {
-			_gameObjectMovementInfo.Add( new GameObjectMovementInfo() {
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = _player2Defenders[i].gameObject,
 				TargetPosition = _player2Defenders[i].TurnStartPosition,
 			} );
@@ -829,8 +810,6 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 		yield return new WaitForSeconds( 1 );
-
-		_animateDice = false;
 
 
 		for ( int i = 0; i < 4; i++ ) {
@@ -862,30 +841,37 @@ public class MainBoardSceneController : MonoBehaviour
 	}
 	private IEnumerator RollDiceCoroutine( bool isInitialDiceRoll, Action callback = null )
 	{
-		_mainCameraTargetPosition = _mainCameraStandardPosition - new Vector3( 0, 0, 10 );
-		_mainCameraSlerpTime = 0;
-		_diceAnimationSlerpTime = 0;
-		_animateDice = true;
+		_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+			GameObject = Camera.main.transform.gameObject,
+			TargetPosition = _mainCameraStandardPosition - new Vector3( 0, 0, 10 )
+		} );
 
+
+
+		int diceMovingCount = 0;
 		for ( var i = 0; i < 4; i++ ) {
 			var die = _dice[i];
 			if ( !die.IsSelected && !die.IsRolling ) {
 				continue;
 			}
+			diceMovingCount++;
 			die.SetDeselectable( true );
 			die.Deselect();
 			die.SetDeselectable( false );
 			die.IsRolling = true;
 			die.UnchooseDie();
 
-			_diceTargetPositions[i] = _dicePreRollPositions[i];
-			die.transform.rotation = UnityEngine.Random.rotation;
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+				GameObject = die.gameObject,
+				TargetPosition = _dicePreRollPositions[i],
+				TargetRotation = UnityEngine.Random.rotation,
+				OnComplete = () => { diceMovingCount--; }
+			} );
 		}
 
 		// Let the dice get into position
-		yield return new WaitUntil( () => _diceAnimationSlerpTime >= 1 );
+		yield return new WaitUntil( () => diceMovingCount == 0 );
 
-		_animateDice = false;
 
 		if ( awaitFinalDiceRolls != null ) {
 			StopCoroutine( awaitFinalDiceRolls );
@@ -945,27 +931,34 @@ public class MainBoardSceneController : MonoBehaviour
 			DiceKeeperCollider.enabled = false;
 			AppendToLogText( string.Format( "Dice values are: {0}", string.Join( ", ", _dice.Select( d => d.GetDieValue() ).Select( dv => dv == null ? "?" : dv.Value.ToString() ).ToArray() ) ) );
 
-			_mainCameraTargetPosition = _mainCameraStandardPosition;
-			_mainCameraSlerpTime = 0;
-			_animateDice = true;
 
-			_diceAnimationSlerpTime = 0;
-			_diceTargetEulerPositions.Clear();
+			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+				GameObject = Camera.main.transform.gameObject,
+				TargetPosition = _mainCameraStandardPosition
+			} );
+
+
+			int diceMovingCount = 0;
 			for ( var i = 0; i < 4; i++ ) {
 				var die = _dice[i];
+				diceMovingCount++;
 
-				_diceTargetPositions[i] = _dicePositions[i];
+				var euler = FourDiceUtils.SnapTo( die.transform.localEulerAngles, 90 );
+				_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+					GameObject = die.gameObject,
+					TargetPosition = _dicePositions[i],
+					TargetRotation = Quaternion.Euler( euler.x, euler.y, euler.z ),
+					OnComplete = () => { diceMovingCount--; }
+				} );
 
 
 				die.GetComponent<Rigidbody>().isKinematic = true;
 
-				_diceTargetEulerPositions.Add( FourDiceUtils.SnapTo( die.transform.localEulerAngles, 90 ) );
 
 			}
 
-			yield return new WaitUntil( () => _diceAnimationSlerpTime >= 1 );
-			_animateDice = false;
-			_diceTargetEulerPositions.Clear();
+			yield return new WaitUntil( () => diceMovingCount == 0 );
+
 			for ( var i = 0; i < 4; i++ ) {
 				_dice[i].IsRolling = false;
 			}
@@ -996,17 +989,18 @@ public class MainBoardSceneController : MonoBehaviour
 	}
 }
 
-class GameObjectMovementInfo
+class GameObjectTransformAnimation
 {
-	public GameObjectMovementInfo()
+	public GameObjectTransformAnimation()
 	{
-		Time = 0;
-		var das = GameObject.FindObjectsOfType<Button>();
+		ElapsedAnimationTime = 0;
+		AnimationSpeed = 1;
 	}
 	public GameObject GameObject;
-	public float Time;
+	public float ElapsedAnimationTime;
+	public float AnimationSpeed;
 	public Vector3 TargetPosition;
-	public Quaternion TargetRotation;
+	public Quaternion? TargetRotation;
 
 
 	public Action OnComplete;
