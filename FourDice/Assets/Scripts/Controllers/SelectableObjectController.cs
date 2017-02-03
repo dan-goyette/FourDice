@@ -10,9 +10,10 @@ public abstract class SelectableObjectController : MonoBehaviour
 {
 	public ParticleSystem SelectionParticleSystem;
 	public ParticleSystem SelectableParticleSystem;
-	public bool IsSelected;
-	public bool CanSelect;
-	public bool CanDeselect;
+
+	public bool IsSelected { get; private set; }
+	public bool CanSelect { get; private set; }
+	public bool CanDeselect { get; private set; }
 
 
 
@@ -88,7 +89,7 @@ public abstract class SelectableObjectController : MonoBehaviour
 	}
 
 
-	private void UpdateParticleSystems()
+	protected virtual void UpdateParticleSystems()
 	{
 		if ( this.IsSelected ) {
 			SelectableParticleSystem.Stop();

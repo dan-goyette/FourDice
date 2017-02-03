@@ -81,6 +81,12 @@ namespace Assets.Scripts.DomainModel
 			return gameLogEntry;
 		}
 
+		public void EndTurn()
+		{
+			this._lastTurnAction = null;
+			this.GameState.CurrentPlayerType = this.GameState.CurrentPlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+		}
+
 
 		public static TurnActionAppliedResult ApplyTurnActionToGameState( GameState gameState, TurnAction turnAction, TurnAction lastTurnAction )
 		{

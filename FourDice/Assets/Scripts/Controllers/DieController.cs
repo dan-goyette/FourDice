@@ -5,10 +5,14 @@ using UnityEngine;
 
 public class DieController : SelectableObjectController
 {
+	public bool IsRolling;
+	public bool IsChosen { get; private set; }
+	public ParticleSystem ChosenParticleSystem;
 
+
+	public Rigidbody Rigidbody { get { return _rigidbody; } }
 	private Rigidbody _rigidbody;
 
-	public bool IsRolling;
 
 
 	public List<Vector3> _directions;
@@ -26,8 +30,9 @@ public class DieController : SelectableObjectController
 	{
 		base.Awake();
 
-		SelectionParticleSystem.Stop();
-		SelectionParticleSystem.Clear();
+
+		ChosenParticleSystem.Stop();
+		ChosenParticleSystem.Clear();
 
 		_rigidbody = gameObject.GetComponent<Rigidbody>();
 
@@ -51,6 +56,35 @@ public class DieController : SelectableObjectController
 			_directions.Add( Vector3.back );
 			_sideValues.Add( 1 ); // back
 		}
+	}
+
+	public void ChooseDie()
+	{
+		this.IsChosen = true;
+		UpdateParticleSystems();
+	}
+
+	public void UnchooseDie()
+	{
+		this.IsChosen = false;
+		UpdateParticleSystems();
+	}
+
+	protected override void UpdateParticleSystems()
+	{
+		if ( IsChosen ) {
+			SelectionParticleSystem.Stop();
+			SelectableParticleSystem.Stop();
+
+			ChosenParticleSystem.Play();
+		}
+		else {
+			ChosenParticleSystem.Stop();
+			ChosenParticleSystem.Clear();
+
+			base.UpdateParticleSystems();
+		}
+
 	}
 
 	// Update is called once per frame
