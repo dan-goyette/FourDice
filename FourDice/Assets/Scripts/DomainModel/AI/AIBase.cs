@@ -9,22 +9,21 @@ namespace Assets.Scripts.DomainModel.AI
 	public class AIBase : IFourDiceAI
 	{
 		protected PlayerType _playerType;
-        protected AIBase _opponentAI;
+		protected AIBase _opponentAI;
 		protected TurnAction[] bestActions = new TurnAction[2];
 		protected int bestValue = -10000;
 
-		public AIBase( PlayerType playerType, bool simulateOpponent = true)
+		public AIBase( PlayerType playerType, bool simulateOpponent = true )
 		{
 			this._playerType = playerType;
-            if (simulateOpponent)
-            {
-                this._opponentAI = new DefenderAI(_playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false);
-            }
-        }
+			if ( simulateOpponent ) {
+				this._opponentAI = new DefenderAI( _playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false );
+			}
+		}
 
 		public TurnAction[] GetNextMoves( GameState originalGameState )
 		{
-			var gameState = new GameState( "" );
+			var gameState = new GameState( null, null );
 			originalGameState.CopyTo( gameState );
 
 			bestActions = new TurnAction[2];
@@ -33,15 +32,15 @@ namespace Assets.Scripts.DomainModel.AI
 			return GetNextMove( gameState, null );
 		}
 
-        public int GetNextMoveValue(GameState originalGameState)
-        {
-            GetNextMoves(originalGameState);
-            return bestValue;
-        }
-
-        protected TurnAction[] GetNextMove( GameState gameState, TurnAction prevAction )
+		public int GetNextMoveValue( GameState originalGameState )
 		{
-			var copiedGameState = new GameState( "" );
+			GetNextMoves( originalGameState );
+			return bestValue;
+		}
+
+		protected TurnAction[] GetNextMove( GameState gameState, TurnAction prevAction )
+		{
+			var copiedGameState = new GameState( null, null );
 			gameState.CopyTo( copiedGameState );
 
 			var player = getMyPlayer( gameState );
@@ -105,10 +104,9 @@ namespace Assets.Scripts.DomainModel.AI
 				}
 				else {
 					var value = GameStateValue( copiedGameState );
-                    if (_opponentAI != null)
-                    {
-                        value -= _opponentAI.GetNextMoveValue(copiedGameState);
-                    }
+					if ( _opponentAI != null ) {
+						value -= _opponentAI.GetNextMoveValue( copiedGameState );
+					}
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
 						bestActions[1] = turnAction;

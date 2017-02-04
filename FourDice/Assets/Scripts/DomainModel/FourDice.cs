@@ -21,9 +21,9 @@ namespace Assets.Scripts.DomainModel
 
 		private TurnAction _lastTurnAction;
 
-		public FourDice( string player2AiName, string player1AiName = null )
+		public FourDice( string player1AiName, string player2AiName )
 		{
-			this.GameState = new GameState( player2AiName, player1AiName: player1AiName );
+			this.GameState = new GameState( player1AiName: player1AiName, player2AiName: player2AiName );
 			this.GameLog = new List<GameLogEntry>();
 		}
 
@@ -443,7 +443,7 @@ namespace Assets.Scripts.DomainModel
 		public Die[] Dice;
 
 
-		public GameState( string player2AiName, string player1AiName = null )
+		public GameState( string player1AiName, string player2AiName )
 		{
 			Player1 = new Player( PlayerType.Player1, player1AiName );
 			Player2 = new Player( PlayerType.Player2, player2AiName );
@@ -465,7 +465,7 @@ namespace Assets.Scripts.DomainModel
 		public void CopyTo( GameState other )
 		{
 			if ( other == null ) {
-				other = new GameState( "" );
+				other = new GameState( null, null );
 			}
 
 			other.CurrentPlayerType = this.CurrentPlayerType;

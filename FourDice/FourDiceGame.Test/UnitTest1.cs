@@ -14,7 +14,7 @@ namespace FourDiceGame.Test
 		[TestInitialize]
 		public void TestInit()
 		{
-			fourDice = new FourDice( "danicaAI" );
+			fourDice = new FourDice( null, "danicaAI" );
 		}
 
 
@@ -34,7 +34,7 @@ namespace FourDiceGame.Test
 
 
 		[TestMethod]
-		public void CannotLandOn1A2DPosition()
+		public void CannotLandOnOccupiedPosition()
 		{
 			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
 
@@ -149,10 +149,10 @@ namespace FourDiceGame.Test
 		[TestMethod]
 		public void CopyGameStateTest()
 		{
-			var gameState = new GameState( "AI" );
+			var gameState = new GameState( null, "AI" );
 			gameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
 
-			var copiedGameState = new GameState( "AI" );
+			var copiedGameState = new GameState( null, "AI" );
 			gameState.CopyTo( copiedGameState );
 
 			Assert.AreEqual( gameState.Player1.Attackers[0].BoardPositionType, copiedGameState.Player1.Attackers[0].BoardPositionType );
@@ -164,13 +164,13 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure an empty die selection is valid.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
 			}
 
 			{
 				// Ensure you can pick the same two dice on each turn.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
 				TurnAction lastTurnAction = new TurnAction( 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
@@ -185,7 +185,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure the same piece can't be moved on both turns.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				TurnAction lastTurnAction = new TurnAction( 1, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
@@ -198,7 +198,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure defenders can't move into the goal.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 4;
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Backward, PieceType.Defender, 0 );
 				TurnAction lastTurnAction = null;
@@ -212,7 +212,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure defenders can't leave their half of the board. 
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 5;
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Defender, 0 );
 				TurnAction lastTurnAction = null;
@@ -226,7 +226,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure an attacker can't move into a space with two defenders in it. 
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 1;
 				gameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.Lane;
 				gameState.Player1.Defenders[0].LanePosition = 3;

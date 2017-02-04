@@ -40,7 +40,7 @@ namespace FourDiceGame.Test
 
 		public bool PlayAGame( AIBase AI1, AIBase AI2 )
 		{
-			FourDice fourDice = new FourDice( "danicaAI" );
+			FourDice fourDice = new FourDice( null, "danicaAI" );
 			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
 			var nextMoves = new TurnAction[2];
 
