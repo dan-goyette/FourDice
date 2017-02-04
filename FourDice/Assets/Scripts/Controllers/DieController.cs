@@ -74,7 +74,7 @@ public class DieController : SelectableObjectController
 	{
 		if ( IsChosen ) {
 			SelectionParticleSystem.Stop();
-			SelectableParticleSystem.Stop();
+			SelectionParticleSystem.Clear();
 
 			ChosenParticleSystem.Play();
 		}

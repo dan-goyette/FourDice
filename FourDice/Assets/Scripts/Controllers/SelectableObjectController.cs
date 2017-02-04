@@ -9,7 +9,6 @@ using UnityEngine;
 public abstract class SelectableObjectController : MonoBehaviour
 {
 	public ParticleSystem SelectionParticleSystem;
-	public ParticleSystem SelectableParticleSystem;
 
 	public bool IsSelected { get; private set; }
 	public bool CanSelect { get; private set; }
@@ -25,9 +24,6 @@ public abstract class SelectableObjectController : MonoBehaviour
 	{
 		SelectionParticleSystem.Stop();
 		SelectionParticleSystem.Clear();
-
-		SelectableParticleSystem.Stop();
-		SelectableParticleSystem.Clear();
 	}
 
 
@@ -64,19 +60,19 @@ public abstract class SelectableObjectController : MonoBehaviour
 	public event SelectableObjectSelectionChangedHandler OnSelectionChanged;
 
 
-	public void Select()
+	public void Select( bool force = false )
 	{
-		Select( true );
+		Select( true, force: force );
 	}
 
-	public void Deselect()
+	public void Deselect( bool force = false )
 	{
-		Select( false );
+		Select( false, force: force );
 	}
 
-	private void Select( bool isSelected )
+	private void Select( bool isSelected, bool force = false )
 	{
-		if ( (isSelected && CanSelect) || (!isSelected && CanDeselect) ) {
+		if ( force || (isSelected && CanSelect) || (!isSelected && CanDeselect) ) {
 			IsSelected = isSelected;
 			UpdateParticleSystems();
 			if ( OnSelectionChanged != null ) {
@@ -106,23 +102,23 @@ public abstract class SelectableObjectController : MonoBehaviour
 	protected virtual void UpdateParticleSystems()
 	{
 		if ( this.IsSelected ) {
-			SelectableParticleSystem.Stop();
 			_targetEmissionColor = Color.black;
 			_emissionTimeElapsed = 0;
 			SelectionParticleSystem.Play();
 		}
 		else if ( this.CanSelect ) {
 			SelectionParticleSystem.Stop();
+			SelectionParticleSystem.Clear();
 
 			_targetEmissionColor = _selectedEmissionColor;
 			_emissionTimeElapsed = 0;
 			//			SelectableParticleSystem.Play();
 		}
 		else {
-			SelectableParticleSystem.Stop();
 			_targetEmissionColor = Color.black;
 			_emissionTimeElapsed = 0;
 			SelectionParticleSystem.Stop();
+			SelectionParticleSystem.Clear();
 		}
 	}
 
@@ -131,7 +127,7 @@ public abstract class SelectableObjectController : MonoBehaviour
 	void OnMouseOver()
 	{
 		if ( Input.GetMouseButtonDown( 0 ) ) {
-			Select( !IsSelected );
+			Select( !IsSelected, force: false );
 		}
 	}
 
