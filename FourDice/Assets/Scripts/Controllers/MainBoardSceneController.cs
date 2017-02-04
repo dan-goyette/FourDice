@@ -271,8 +271,8 @@ public class MainBoardSceneController : MonoBehaviour
 		DeselectAllLanePositions();
 
 
-		_fourDice = new FourDice( null, "DefenderAI" );
-		_turnStartGameState = new GameState( null, "DefenderAI" );
+		_fourDice = new FourDice( null, null );// "DefenderAI" );
+		_turnStartGameState = new GameState( null, null );// "DefenderAI" );
 
 
 		var assembly = Assembly.GetExecutingAssembly();
@@ -785,7 +785,7 @@ public class MainBoardSceneController : MonoBehaviour
 									// Capture the piece according to the turn action result.
 									var capturedPiece = _activePlayerType == PlayerType.Player1
 										? _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value]
-										: _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value];
+										: _player1Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value];
 									pieceToMove.InUpperSlot = capturedPiece.InUpperSlot;
 								}
 
