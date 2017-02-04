@@ -330,7 +330,10 @@ namespace Assets.Scripts.DomainModel
 					if ( otherPiecesAtNewLanePostion.Count( p => p.PlayerType != currentPlayer.PlayerType && p.PieceType == PieceType.Defender ) == 2 ) {
 						return TurnActionValidationResult.Fail( "The selected location is already occupied by two of the opponent's defenders." );
 					}
-
+					if ( otherPiecesAtNewLanePostion.Count( p => p.PlayerType == currentPlayer.PlayerType && p.PieceType == PieceType.Attacker ) == 1
+						&& otherPiecesAtNewLanePostion.Count( p => p.PlayerType != currentPlayer.PlayerType && p.PieceType == PieceType.Defender ) == 1 ) {
+						return TurnActionValidationResult.Fail( "The selected location is already occupied by a defender and one of your attackers." );
+					}
 
 				}
 			}

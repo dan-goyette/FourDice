@@ -33,6 +33,32 @@ namespace FourDiceGame.Test
 		}
 
 
+		[TestMethod]
+		public void CannotLandOn1A2DPosition()
+		{
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
+
+			fourDice.GameState.Dice[0].Value = 1;
+			fourDice.GameState.Dice[1].Value = 1;
+			fourDice.GameState.Dice[2].Value = 1;
+			fourDice.GameState.Dice[3].Value = 1;
+
+			fourDice.GameState.Player1.Defenders[0].LanePosition = 1;
+			fourDice.GameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.Player2.Attackers[0].LanePosition = 1;
+			fourDice.GameState.Player2.Attackers[0].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.Player2.Attackers[1].LanePosition = 2;
+			fourDice.GameState.Player2.Attackers[1].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player2;
+
+			var turn1 = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 1 );
+			var validationResult = FourDice.ValidateTurnAction( fourDice.GameState, turn1, null );
+			Assert.IsFalse( validationResult.IsValidAction );
+		}
+
 
 		[TestMethod]
 		public void TurnActionTest1()

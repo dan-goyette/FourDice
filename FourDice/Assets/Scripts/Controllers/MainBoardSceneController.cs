@@ -45,6 +45,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private List<GameObjectTransformAnimation> _gameObjectAnimations;
 
+	private TurnAction _lastTurnAction;
+
 	// Use this for initialization
 	void Start()
 	{
@@ -376,6 +378,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 				DoGameLoopPhaseInitialization( () => {
 					_fourDice.GameState.CopyTo( _turnStartGameState );
+					_lastTurnAction = null;
 					UndoTurnButton.gameObject.SetActive( true );
 
 					_lastSelectedPiece = null;
@@ -430,6 +433,8 @@ public class MainBoardSceneController : MonoBehaviour
 					}
 
 					MakePiecesSelectable( dieIndices );
+
+					_lastSelectedPiece = null;
 				} );
 
 
@@ -438,7 +443,8 @@ public class MainBoardSceneController : MonoBehaviour
 					_gameLoopPhase = GameLoopPhase.FirstPieceTargetSelection;
 				}
 			}
-			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceTargetSelection ) {
+			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceTargetSelection
+				|| _gameLoopPhase == GameLoopPhase.SecondPieceTargetSelection ) {
 
 				DoGameLoopPhaseInitialization( () => {
 					foreach ( var piece in attackers.Cast<GamePieceController>().Union( defenders ) ) {
@@ -452,7 +458,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 					for ( var i = 0; i < _dice.Length; i++ ) {
 						var die = _dice[i];
-						if ( die.IsSelected ) {
+						if ( die.IsSelected && !die.IsChosen ) {
 							foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
 								var turnAction = new TurnAction( i, direction, _lastSelectedPiece.PieceType, _lastSelectedPiece.PieceIndex );
 								var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
@@ -476,7 +482,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 				if ( _lastSelectedPiece == null ) {
 					// They've deselected the piece. Revert to First Piece Selection.
-					_gameLoopPhase = GameLoopPhase.FirstPieceSelection;
+					_gameLoopPhase = _gameLoopPhase == GameLoopPhase.FirstPieceTargetSelection
+						? GameLoopPhase.FirstPieceSelection
+						: GameLoopPhase.SecondPieceSelection;
 				}
 				else {
 
@@ -495,13 +503,14 @@ public class MainBoardSceneController : MonoBehaviour
 						for ( var i = 0; i < _dice.Length; i++ ) {
 							if ( appliedGameLogEntry == null ) {
 								var die = _dice[i];
-								if ( die.IsSelected ) {
+								if ( die.IsSelected && !die.IsChosen ) {
 
 									foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
 										var turnAction = new TurnAction( i, direction, pieceToMove.PieceType, pieceToMove.PieceIndex );
 										var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
 										if ( validationResult.NewLanePosition == targetLanePosition.LanePosition ) {
 											appliedGameLogEntry = _fourDice.ApplyTurnAction( turnAction );
+											_lastTurnAction = turnAction;
 
 											if ( validationResult.NewBoardPositionType.HasValue ) {
 												pieceToMove.BoardPositionType = validationResult.NewBoardPositionType.Value;
@@ -650,7 +659,10 @@ public class MainBoardSceneController : MonoBehaviour
 
 						_lastSelectedLanePosition = null;
 						_lastSelectedPiece = null;
-						_gameLoopPhase = GameLoopPhase.SecondPieceSelection;
+						_gameLoopPhase = _gameLoopPhase == GameLoopPhase.FirstPieceTargetSelection
+							? GameLoopPhase.SecondPieceSelection
+							: GameLoopPhase.WaitingForFinalization;
+
 
 					}
 
@@ -658,6 +670,40 @@ public class MainBoardSceneController : MonoBehaviour
 				}
 
 
+			}
+			else if ( _gameLoopPhase == GameLoopPhase.SecondPieceSelection ) {
+
+				DoGameLoopPhaseInitialization( () => {
+					// Ensure all pieces are in a consistent state for this turn state.
+
+					DeselectAllGamePieces();
+					DeselectAllLanePositions();
+
+					foreach ( var lanePosition in _lanePositions ) {
+						lanePosition.Deselect();
+						lanePosition.SetSelectable( false );
+						lanePosition.SetDeselectable( false );
+					}
+
+
+					List<int> dieIndices = new List<int>();
+					for ( var i = 0; i < _dice.Length; i++ ) {
+						var die = _dice[i];
+						die.SetSelectable( false );
+						die.SetDeselectable( false );
+						if ( die.IsSelected && !die.IsChosen ) {
+							dieIndices.Add( i );
+						}
+					}
+
+					MakePiecesSelectable( dieIndices );
+				} );
+
+
+				// Wait for the player to select a piece.
+				if ( _lastSelectedPiece != null ) {
+					_gameLoopPhase = GameLoopPhase.SecondPieceTargetSelection;
+				}
 			}
 
 
@@ -743,7 +789,7 @@ public class MainBoardSceneController : MonoBehaviour
 				foreach ( var direction in Enum.GetValues( typeof( PieceMovementDirection ) ).Cast<PieceMovementDirection>() ) {
 					var turnAction = new TurnAction( dieIndex, direction, piece.PieceType, piece.PieceIndex );
 
-					var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, null );
+					var validationResult = FourDice.ValidateTurnAction( _fourDice.GameState, turnAction, _lastTurnAction );
 
 					if ( validationResult.IsValidAction ) {
 						moveablePieces.Add( piece );
