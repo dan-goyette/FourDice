@@ -30,14 +30,19 @@ namespace Assets.Scripts.DomainModel.AI
                 }
             }
 
-            // Keep defenders apart
-            if (myPlayer.Defenders[0].LanePosition != myPlayer.Defenders[1].LanePosition)
-            {
-                value += 5;
-            }
+			// Keep defenders apart
+			if ( myPlayer.Defenders[0].LanePosition != myPlayer.Defenders[1].LanePosition ) {
+				value += 5;
+			}
+			if ( myPlayer.Defenders[0].BoardPositionType != BoardPositionType.DefenderCircle ) {
+				value += 3;
+			}
+			if ( myPlayer.Defenders[1].BoardPositionType != BoardPositionType.DefenderCircle ) {
+				value += 3;
+			}
 
-            // Defense
-            foreach (var piece in opponentPlayer.Attackers)
+			// Defense
+			foreach (var piece in opponentPlayer.Attackers)
             {
                 if (piece.BoardPositionType == BoardPositionType.OwnGoal)
                 {

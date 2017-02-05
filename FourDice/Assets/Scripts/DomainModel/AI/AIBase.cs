@@ -162,6 +162,12 @@ namespace Assets.Scripts.DomainModel.AI
             {
                 value += 5;
             }
+			if ( myPlayer.Defenders[0].BoardPositionType != BoardPositionType.DefenderCircle ) {
+				value += 3;
+			}
+			if ( myPlayer.Defenders[1].BoardPositionType != BoardPositionType.DefenderCircle ) {
+				value += 3;
+			}
 
             // Defense
             foreach (var piece in opponentPlayer.Attackers)
