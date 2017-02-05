@@ -18,7 +18,7 @@ namespace Assets.Scripts.DomainModel.AI
 			this._playerType = playerType;
             if (simulateOpponent)
             {
-                this._opponentAI = new DefenderAI(_playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false);
+                this._opponentAI = new AIBase(_playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Assets.Scripts.DomainModel.AI
 					var value = GameStateValue( copiedGameState );
                     if (_opponentAI != null)
                     {
-                        value -= _opponentAI.GetNextMoveValue(copiedGameState);
+                        value -= (int) (_opponentAI.GetNextMoveValue(copiedGameState) * 0.6);
                     }
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
@@ -135,18 +135,57 @@ namespace Assets.Scripts.DomainModel.AI
 
 		protected virtual int GameStateValue( GameState gameState )
 		{
-			var player = getMyPlayer( gameState );
-			var value = 0;
-			foreach ( var piece in player.Attackers ) {
-				if ( piece.BoardPositionType == BoardPositionType.OpponentGoal ) {
-					value += 20;
-				}
-				else if ( piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null ) {
-					value += PositionValue( piece.LanePosition.Value );
-				}
-			}
-			//Debug.WriteLine(string.Format("{0} {1}",_playerType,  value));
-			return value;
-		}
+            var myPlayer = getMyPlayer(gameState);
+            var opponentPlayer = getOpponentPlayer(gameState);
+            var value = 0;
+
+            var allPiecesAtPositions = FourDice.GetGamePiecesAtAllLanePosition(gameState);
+
+            // Offense
+            foreach (var piece in myPlayer.Attackers)
+            {
+                if (piece.BoardPositionType == BoardPositionType.OpponentGoal)
+                {
+                    value += 70;
+                }
+                else if (piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null)
+                {
+                    value += PositionValue(piece.LanePosition.Value);
+                }
+            }
+
+            // Keep defenders apart
+            if (myPlayer.Defenders[0].LanePosition != myPlayer.Defenders[1].LanePosition)
+            {
+                value += 5;
+            }
+
+            // Defense
+            foreach (var piece in opponentPlayer.Attackers)
+            {
+                if (piece.BoardPositionType == BoardPositionType.OwnGoal)
+                {
+                    value += 300;
+                }
+            }
+
+            for (var position = 1; position <= FourDice.Player1ThresholdLanePosition; position++)
+            {
+                var myPosition = PositionValue(position);
+                List<GamePiece> piecesAtLocation;
+                if (!allPiecesAtPositions.TryGetValue(myPosition, out piecesAtLocation))
+                {
+                    piecesAtLocation = new List<GamePiece>();
+                }
+                if (piecesAtLocation.Count() == 2) {
+                    if (piecesAtLocation.ElementAt(0).PlayerType != _playerType || piecesAtLocation.ElementAt(1).PlayerType != _playerType)
+                    {
+                        value += 100;
+                    }
+                }
+            }
+            //Debug.WriteLine(string.Format("{0} ",value));
+            return value;
+        }
 	}
 }

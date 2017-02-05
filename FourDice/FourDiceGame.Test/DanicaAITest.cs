@@ -17,13 +17,13 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-		int numberOfGames = 10;
+		int numberOfGames = 100;
 
 		[TestInitialize]
 		public void TestInit()
 		{
-			danicaAI1 = new DefenderAI( PlayerType.Player1, false );
-			danicaAI2 = new DefenderAI( PlayerType.Player2, false );
+			danicaAI1 = new AIBase( PlayerType.Player1, false );
+			danicaAI2 = new BestAI( PlayerType.Player2, false );
 		}
 
 		[TestMethod]
@@ -35,7 +35,7 @@ namespace FourDiceGame.Test
 					player1Wins++;
 			}
 
-			Debug.WriteLine( "Player 1 wins " + player1Wins );
+			Debug.WriteLine( string.Format("{0} wins {1}\n{2} wins {3}", danicaAI1.GetType().Name, player1Wins, danicaAI2.GetType().Name, numberOfGames - player1Wins));
 		}
 
 		public bool PlayAGame( AIBase AI1, AIBase AI2 )
@@ -44,8 +44,8 @@ namespace FourDiceGame.Test
 			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
 			var nextMoves = new TurnAction[2];
 
-			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished ) {
-				if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
+            while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished ) {
+                if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
 					nextMoves = danicaAI1.GetNextMoves( fourDice.GameState );
 				}
 				else {

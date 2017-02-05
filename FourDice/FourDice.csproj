@@ -120,6 +120,7 @@
     <Compile Include="Assets\Scripts\Controllers\MainBoardSceneController.cs" />
     <Compile Include="Assets\Scripts\Controllers\SelectableObjectController.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\AIBase.cs" />
+    <Compile Include="Assets\Scripts\DomainModel\AI\BestAI.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\DefenderAI.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\IFourDiceAI.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\OffensiveAI.cs" />

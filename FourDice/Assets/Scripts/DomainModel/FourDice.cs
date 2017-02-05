@@ -181,7 +181,7 @@ namespace Assets.Scripts.DomainModel
 		public static Dictionary<int, List<GamePiece>> GetGamePiecesAtAllLanePosition( GameState gameState )
 		{
 			Dictionary<int, List<GamePiece>> retval = new Dictionary<int, List<GamePiece>>();
-			for ( int i = Player1GoalLanePosition + 1; i < Player1GoalLanePosition; i++ ) {
+			for ( int i = Player1GoalLanePosition + 1; i < Player2GoalLanePosition; i++ ) {
 				retval[i] = GetGamePiecesAtLanePosition( gameState, i ).ToList();
 			}
 			return retval;

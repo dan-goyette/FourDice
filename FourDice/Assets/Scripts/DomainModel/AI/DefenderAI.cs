@@ -16,18 +16,8 @@ namespace Assets.Scripts.DomainModel.AI
 			var value = 0;
 
 			var allPiecesAtPositions = FourDice.GetGamePiecesAtAllLanePosition( gameState );
-
-			// Offense
-			foreach ( var piece in myPlayer.Attackers ) {
-				if ( piece.BoardPositionType == BoardPositionType.OpponentGoal ) {
-					value += 30;
-				}
-				else if ( piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null ) {
-					value += PositionValue( piece.LanePosition.Value );
-				}
-			}
-
-			// Keep defendered apart
+            
+			// Keep defenders apart
 			if ( myPlayer.Defenders[0].LanePosition != myPlayer.Defenders[1].LanePosition ) {
 				value += 5;
 			}
