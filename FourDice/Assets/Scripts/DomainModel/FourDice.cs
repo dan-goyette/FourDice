@@ -21,9 +21,9 @@ namespace Assets.Scripts.DomainModel
 
 		private TurnAction _lastTurnAction;
 
-		public FourDice( string player2AiName, string player1AiName = null )
+		public FourDice( string player1AiName, string player2AiName )
 		{
-			this.GameState = new GameState( player2AiName, player1AiName: player1AiName );
+			this.GameState = new GameState( player1AiName: player1AiName, player2AiName: player2AiName );
 			this.GameLog = new List<GameLogEntry>();
 		}
 
@@ -330,7 +330,10 @@ namespace Assets.Scripts.DomainModel
 					if ( otherPiecesAtNewLanePostion.Count( p => p.PlayerType != currentPlayer.PlayerType && p.PieceType == PieceType.Defender ) == 2 ) {
 						return TurnActionValidationResult.Fail( "The selected location is already occupied by two of the opponent's defenders." );
 					}
-
+					if ( otherPiecesAtNewLanePostion.Count( p => p.PlayerType == currentPlayer.PlayerType && p.PieceType == PieceType.Attacker ) == 1
+						&& otherPiecesAtNewLanePostion.Count( p => p.PlayerType != currentPlayer.PlayerType && p.PieceType == PieceType.Defender ) == 1 ) {
+						return TurnActionValidationResult.Fail( "The selected location is already occupied by a defender and one of your attackers." );
+					}
 
 				}
 			}
@@ -440,7 +443,7 @@ namespace Assets.Scripts.DomainModel
 		public Die[] Dice;
 
 
-		public GameState( string player2AiName, string player1AiName = null )
+		public GameState( string player1AiName, string player2AiName )
 		{
 			Player1 = new Player( PlayerType.Player1, player1AiName );
 			Player2 = new Player( PlayerType.Player2, player2AiName );
@@ -462,7 +465,7 @@ namespace Assets.Scripts.DomainModel
 		public void CopyTo( GameState other )
 		{
 			if ( other == null ) {
-				other = new GameState( "" );
+				other = new GameState( null, null );
 			}
 
 			other.CurrentPlayerType = this.CurrentPlayerType;
@@ -645,6 +648,107 @@ namespace Assets.Scripts.DomainModel
 			}
 
 			return string.Format( format, inputs.ToArray() );
+		}
+
+		public string GetSerializationCode()
+		{
+			var sb = new StringBuilder();
+
+			for ( var i = 0; i < Dice.Length; i++ ) {
+				var die = Dice[i];
+				sb.Append( die.Value );
+				sb.Append( die.IsChosen ? "Y" : "N" );
+			}
+
+			Action<GamePiece> append = ( gp ) => {
+				if ( gp.BoardPositionType == BoardPositionType.Lane ) {
+					sb.Append( gp.LanePosition.Value.ToString( "D2" ) );
+				}
+				else if ( gp.BoardPositionType == BoardPositionType.DefenderCircle ) {
+					sb.Append( "Dx" );
+				}
+				else if ( gp.BoardPositionType == BoardPositionType.OwnGoal ) {
+					sb.Append( "Sx" );
+				}
+				else if ( gp.BoardPositionType == BoardPositionType.OpponentGoal ) {
+					sb.Append( "Ex" );
+				}
+			};
+			for ( var i = 0; i < Player1.Attackers.Length; i++ ) {
+				append( Player1.Attackers[i] );
+			}
+			for ( var i = 0; i < Player1.Defenders.Length; i++ ) {
+				append( Player1.Defenders[i] );
+			}
+			for ( var i = 0; i < Player2.Attackers.Length; i++ ) {
+				append( Player2.Attackers[i] );
+			}
+			for ( var i = 0; i < Player2.Defenders.Length; i++ ) {
+				append( Player2.Defenders[i] );
+			}
+
+			return sb.ToString();
+
+		}
+
+		public void InitializeFromSerializationCode( string code )
+		{
+			var diceCodes = code.Substring( 0, 8 ).ToCharArray();
+
+			for ( var i = 0; i < Dice.Length; i++ ) {
+				Dice[i].Value = int.Parse( diceCodes[2 * i].ToString() );
+				Dice[i].IsChosen = diceCodes[(2 * i) + 1] == 'Y' ? true : false;
+			}
+
+			Action<GamePiece, string> restore = ( gp, gpCode ) => {
+				if ( gpCode == "Dx" ) {
+					gp.LanePosition = null;
+					gp.BoardPositionType = BoardPositionType.DefenderCircle;
+				}
+				else if ( gpCode == "Sx" ) {
+					gp.LanePosition = null;
+					gp.BoardPositionType = BoardPositionType.OwnGoal;
+				}
+				else if ( gpCode == "Ex" ) {
+					gp.LanePosition = null;
+					gp.BoardPositionType = BoardPositionType.OpponentGoal;
+				}
+				else {
+					gp.LanePosition = int.Parse( gpCode );
+					gp.BoardPositionType = BoardPositionType.Lane;
+				}
+			};
+
+			Func<string, List<string>> pairs = ( s ) => {
+				List<string> retval = new List<string>();
+
+				for ( int i = 0; i < s.Length; i += 2 ) {
+					retval.Add( s.Substring( i, 2 ) );
+				}
+
+				return retval;
+			};
+
+
+			var player1AttackerCodes = pairs( code.Substring( 8, 10 ) );
+			var player1DefenderCodes = pairs( code.Substring( 18, 4 ) );
+			var player2AttackerCodes = pairs( code.Substring( 22, 10 ) );
+			var player2DefenderCodes = pairs( code.Substring( 32, 4 ) );
+
+
+			for ( int i = 0; i < Player1.Attackers.Length; i++ ) {
+				restore( Player1.Attackers[i], player1AttackerCodes[i] );
+			}
+			for ( int i = 0; i < Player1.Defenders.Length; i++ ) {
+				restore( Player1.Defenders[i], player1DefenderCodes[i] );
+			}
+
+			for ( int i = 0; i < Player2.Attackers.Length; i++ ) {
+				restore( Player2.Attackers[i], player2AttackerCodes[i] );
+			}
+			for ( int i = 0; i < Player2.Defenders.Length; i++ ) {
+				restore( Player2.Defenders[i], player2DefenderCodes[i] );
+			}
 		}
 	}
 

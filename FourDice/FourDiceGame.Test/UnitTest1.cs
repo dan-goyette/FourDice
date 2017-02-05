@@ -14,7 +14,7 @@ namespace FourDiceGame.Test
 		[TestInitialize]
 		public void TestInit()
 		{
-			fourDice = new FourDice( "danicaAI" );
+			fourDice = new FourDice( null, "danicaAI" );
 		}
 
 
@@ -32,6 +32,32 @@ namespace FourDiceGame.Test
 			Assert.IsNull( gameEndResult.WinningPlayer );
 		}
 
+
+		[TestMethod]
+		public void CannotLandOnOccupiedPosition()
+		{
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player1;
+
+			fourDice.GameState.Dice[0].Value = 1;
+			fourDice.GameState.Dice[1].Value = 1;
+			fourDice.GameState.Dice[2].Value = 1;
+			fourDice.GameState.Dice[3].Value = 1;
+
+			fourDice.GameState.Player1.Defenders[0].LanePosition = 1;
+			fourDice.GameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.Player2.Attackers[0].LanePosition = 1;
+			fourDice.GameState.Player2.Attackers[0].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.Player2.Attackers[1].LanePosition = 2;
+			fourDice.GameState.Player2.Attackers[1].BoardPositionType = BoardPositionType.Lane;
+
+			fourDice.GameState.CurrentPlayerType = PlayerType.Player2;
+
+			var turn1 = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 1 );
+			var validationResult = FourDice.ValidateTurnAction( fourDice.GameState, turn1, null );
+			Assert.IsFalse( validationResult.IsValidAction );
+		}
 
 
 		[TestMethod]
@@ -118,15 +144,78 @@ namespace FourDiceGame.Test
 		}
 
 
+		[TestMethod]
+		public void GameStateSerializationTest()
+		{
 
+			var initialGameState = new GameState( null, null );
+			initialGameState.Dice[0].Value = 4;
+			initialGameState.Dice[0].IsChosen = true;
+			initialGameState.Dice[1].Value = 1;
+			initialGameState.Dice[2].Value = 2;
+			initialGameState.Dice[3].Value = 6;
+			initialGameState.Dice[3].IsChosen = true;
+
+			initialGameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
+			initialGameState.Player1.Attackers[1].BoardPositionType = BoardPositionType.Lane;
+			initialGameState.Player1.Attackers[1].LanePosition = 5;
+			initialGameState.Player1.Attackers[2].BoardPositionType = BoardPositionType.OwnGoal;
+			initialGameState.Player1.Attackers[3].BoardPositionType = BoardPositionType.OwnGoal;
+			initialGameState.Player1.Attackers[4].BoardPositionType = BoardPositionType.OwnGoal;
+
+			initialGameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.DefenderCircle;
+			initialGameState.Player1.Defenders[1].BoardPositionType = BoardPositionType.Lane;
+			initialGameState.Player1.Defenders[1].LanePosition = 4;
+
+
+			initialGameState.Player2.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
+			initialGameState.Player2.Attackers[1].BoardPositionType = BoardPositionType.Lane;
+			initialGameState.Player2.Attackers[1].LanePosition = 5;
+			initialGameState.Player2.Attackers[2].BoardPositionType = BoardPositionType.Lane;
+			initialGameState.Player2.Attackers[2].LanePosition = 11;
+			initialGameState.Player2.Attackers[3].BoardPositionType = BoardPositionType.OwnGoal;
+			initialGameState.Player2.Attackers[4].BoardPositionType = BoardPositionType.OwnGoal;
+
+			initialGameState.Player2.Defenders[0].BoardPositionType = BoardPositionType.DefenderCircle;
+			initialGameState.Player2.Defenders[1].BoardPositionType = BoardPositionType.Lane;
+			initialGameState.Player2.Defenders[1].LanePosition = 11;
+
+			var newGameState = new GameState( null, null );
+			newGameState.InitializeFromSerializationCode( initialGameState.GetSerializationCode() );
+
+			// Confirm the two game states are equal.
+			for ( int i = 0; i < newGameState.Dice.Length; i++ ) {
+				Assert.AreEqual( initialGameState.Dice[i].Value, newGameState.Dice[i].Value );
+				Assert.AreEqual( initialGameState.Dice[i].IsChosen, newGameState.Dice[i].IsChosen );
+			}
+
+			for ( int i = 0; i < newGameState.Player1.Attackers.Length; i++ ) {
+				Assert.AreEqual( initialGameState.Player1.Attackers[i].BoardPositionType, newGameState.Player1.Attackers[i].BoardPositionType );
+				Assert.AreEqual( initialGameState.Player1.Attackers[i].LanePosition, newGameState.Player1.Attackers[i].LanePosition );
+			}
+			for ( int i = 0; i < newGameState.Player1.Defenders.Length; i++ ) {
+				Assert.AreEqual( initialGameState.Player1.Defenders[i].BoardPositionType, newGameState.Player1.Defenders[i].BoardPositionType );
+				Assert.AreEqual( initialGameState.Player1.Defenders[i].LanePosition, newGameState.Player1.Defenders[i].LanePosition );
+			}
+
+			for ( int i = 0; i < newGameState.Player2.Attackers.Length; i++ ) {
+				Assert.AreEqual( initialGameState.Player2.Attackers[i].BoardPositionType, newGameState.Player2.Attackers[i].BoardPositionType );
+				Assert.AreEqual( initialGameState.Player2.Attackers[i].LanePosition, newGameState.Player2.Attackers[i].LanePosition );
+			}
+			for ( int i = 0; i < newGameState.Player2.Defenders.Length; i++ ) {
+				Assert.AreEqual( initialGameState.Player2.Defenders[i].BoardPositionType, newGameState.Player2.Defenders[i].BoardPositionType );
+				Assert.AreEqual( initialGameState.Player2.Defenders[i].LanePosition, newGameState.Player2.Defenders[i].LanePosition );
+			}
+
+		}
 
 		[TestMethod]
 		public void CopyGameStateTest()
 		{
-			var gameState = new GameState( "AI" );
+			var gameState = new GameState( null, "AI" );
 			gameState.Player1.Attackers[0].BoardPositionType = BoardPositionType.OpponentGoal;
 
-			var copiedGameState = new GameState( "AI" );
+			var copiedGameState = new GameState( null, "AI" );
 			gameState.CopyTo( copiedGameState );
 
 			Assert.AreEqual( gameState.Player1.Attackers[0].BoardPositionType, copiedGameState.Player1.Attackers[0].BoardPositionType );
@@ -138,13 +227,13 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure an empty die selection is valid.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
 			}
 
 			{
 				// Ensure you can pick the same two dice on each turn.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0 );
 				TurnAction lastTurnAction = new TurnAction( 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
@@ -159,7 +248,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure the same piece can't be moved on both turns.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				TurnAction lastTurnAction = new TurnAction( 1, PieceMovementDirection.Forward, PieceType.Attacker, 0 );
 				var validationResult = FourDice.ValidateTurnAction( gameState, turnAction, lastTurnAction );
@@ -172,7 +261,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure defenders can't move into the goal.
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 4;
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Backward, PieceType.Defender, 0 );
 				TurnAction lastTurnAction = null;
@@ -186,7 +275,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure defenders can't leave their half of the board. 
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 5;
 				TurnAction turnAction = new TurnAction( 0, PieceMovementDirection.Forward, PieceType.Defender, 0 );
 				TurnAction lastTurnAction = null;
@@ -200,7 +289,7 @@ namespace FourDiceGame.Test
 
 			{
 				// Ensure an attacker can't move into a space with two defenders in it. 
-				var gameState = new GameState( "AI" );
+				var gameState = new GameState( null, "AI" );
 				gameState.Dice[0].Value = 1;
 				gameState.Player1.Defenders[0].BoardPositionType = BoardPositionType.Lane;
 				gameState.Player1.Defenders[0].LanePosition = 3;
