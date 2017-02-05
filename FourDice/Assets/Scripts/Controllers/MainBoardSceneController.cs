@@ -25,6 +25,7 @@ public class MainBoardSceneController : MonoBehaviour
 	public Text Player1TurnLabel;
 	public Text Player2TurnLabel;
 	public Text LogText;
+	public InputField TurnStartSerialCode;
 
 	Vector3 _mainCameraStandardPosition;
 
@@ -231,6 +232,14 @@ public class MainBoardSceneController : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	public void DeserializeButtonPressed()
+	{
+		this._fourDice.GameState.InitializeFromSerializationCode( TurnStartSerialCode.text );
+		SynchronizeBoardWithGameState();
+		_previousGameLoopPhase = GameLoopPhase.Waiting;
+		_gameLoopPhase = GameLoopPhase.DieSelection;
 	}
 
 
@@ -445,7 +454,7 @@ public class MainBoardSceneController : MonoBehaviour
 				DoGameLoopPhaseInitialization( () => {
 					UndoTurnButton.gameObject.SetActive( false );
 
-					SynchronizeGameStateWithBoard();
+					//SynchronizeGameStateWithBoard();
 					DeselectAllGamePieces();
 					DeselectAllLanePositions();
 					RollDiceButton.gameObject.SetActive( true );
@@ -523,6 +532,8 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 			else if ( _gameLoopPhase == GameLoopPhase.FirstPieceSelection ) {
 
+				var skippingPieceMove = false;
+
 				DoGameLoopPhaseInitialization( () => {
 					// After dice are chosen, the player may end their turn.
 					EndTurnButton.gameObject.SetActive( true );
@@ -579,12 +590,17 @@ public class MainBoardSceneController : MonoBehaviour
 							}
 						}
 						else {
-							_gameLoopPhase = GameLoopPhase.SecondPieceTargetSelection;
+
 							AppendToLogText( "AI Chooses not to move their first piece." );
+							skippingPieceMove = true;
 						}
 					}
 				} );
 
+
+				if ( skippingPieceMove ) {
+					_gameLoopPhase = GameLoopPhase.SecondPieceTargetSelection;
+				}
 
 				// Wait for the player to select a piece.
 				if ( _lastSelectedPiece != null ) {
@@ -737,7 +753,6 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 											AppendToLogText( _fourDice.GameState.GetAsciiState() );
-											AppendToLogText( _fourDice.GameState.GetSerializationCode() );
 
 											// Mark the die as chosen, and slide it away.
 											die.ChooseDie();
@@ -912,6 +927,8 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 			else if ( _gameLoopPhase == GameLoopPhase.SecondPieceSelection ) {
 
+				var skippingPieceMove = false;
+
 				DoGameLoopPhaseInitialization( () => {
 					// Ensure all pieces are in a consistent state for this turn state.
 
@@ -967,10 +984,14 @@ public class MainBoardSceneController : MonoBehaviour
 						else {
 							// End Turn
 							AppendToLogText( "AI Chooses not to move their second piece." );
-							EndTurnButtonPressed();
+							skippingPieceMove = true;
 						}
 					}
 				} );
+
+				if ( skippingPieceMove ) {
+					EndTurnButtonPressed();
+				}
 
 
 				// Wait for the player to select a piece.
@@ -1050,7 +1071,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		HashSet<GamePieceController> moveablePieces = new HashSet<GamePieceController>();
 
-		SynchronizeGameStateWithBoard();
+		//SynchronizeGameStateWithBoard();
 
 		foreach ( var piece in attackers.Cast<GamePieceController>().Union( defenders ) ) {
 			piece.SetSelectable( false );
@@ -1084,7 +1105,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void SynchronizeGameStateWithBoard()
 	{
-		AppendToLogText( "Synchonizing" );
+		//AppendToLogText( "Synchonizing" );
 		_fourDice.GameState.CurrentPlayerType = _activePlayerType;
 
 		for ( var i = 0; i < 4; i++ ) {
@@ -1117,14 +1138,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void SynchronizeBoardWithGameState()
 	{
-		AppendToLogText( "Reverse Synchonizing" );
+		//AppendToLogText( "Reverse Synchonizing" );
 		StartCoroutine( BeginSynchronizeBoardWithGameState() );
 	}
 
 	private IEnumerator BeginSynchronizeBoardWithGameState()
 	{
 		// Move any dice.
-
+		_activePlayerType = _fourDice.GameState.CurrentPlayerType;
 
 		for ( int i = 0; i < 4; i++ ) {
 			_dice[i].SetSelectable( true );
@@ -1347,8 +1368,10 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 
 			SynchronizeGameStateWithBoard();
+			var serializationCode = _fourDice.GameState.GetSerializationCode();
+			AppendToLogText( serializationCode );
+			TurnStartSerialCode.text = serializationCode;
 
-			AppendToLogText( this._fourDice.GameState.GetSerializationCode() );
 
 			// Update the Game State with the new Dice values.
 
