@@ -61,7 +61,7 @@ namespace Assets.Scripts.DomainModel.AI
                     }
                     else if (position > FourDice.Player1ThresholdLanePosition)
                     {
-                        value -= 400;
+                        value -= 500;
                     }
                     else
                     {

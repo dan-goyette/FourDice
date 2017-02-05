@@ -17,12 +17,13 @@ namespace FourDiceGame.Test
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-		int numberOfGames = 100;
+		int numberOfGames = 1;
+		string startState = "";
 
 		[TestInitialize]
 		public void TestInit()
 		{
-			danicaAI1 = new AIBase( PlayerType.Player1, false );
+			danicaAI1 = new BestAI( PlayerType.Player1, false );
 			danicaAI2 = new BestAI( PlayerType.Player2, false );
 		}
 
@@ -35,7 +36,7 @@ namespace FourDiceGame.Test
 					player1Wins++;
 			}
 
-			Debug.WriteLine( string.Format("{0} wins {1}\n{2} wins {3}", danicaAI1.GetType().Name, player1Wins, danicaAI2.GetType().Name, numberOfGames - player1Wins));
+			Debug.WriteLine( string.Format( "{0} wins {1}\n{2} wins {3}", danicaAI1.GetType().Name, player1Wins, danicaAI2.GetType().Name, numberOfGames - player1Wins ) );
 		}
 
 		public bool PlayAGame( AIBase AI1, AIBase AI2 )
@@ -43,9 +44,14 @@ namespace FourDiceGame.Test
 			FourDice fourDice = new FourDice( null, "danicaAI" );
 			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
 			var nextMoves = new TurnAction[2];
-
-            while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished ) {
-                if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
+			
+			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished && startState!="end") {
+				if (startState.Length > 0) {
+					fourDice.GameState.InitializeFromSerializationCode( startState );
+					Debug.WriteLine( fourDice.GameState.GetAsciiState() );
+					startState = "end";
+				}
+				if ( fourDice.GameState.CurrentPlayerType == PlayerType.Player1 ) {
 					nextMoves = danicaAI1.GetNextMoves( fourDice.GameState );
 				}
 				else {
@@ -63,6 +69,10 @@ namespace FourDiceGame.Test
 					fourDice.ApplyTurnAction( nextMoves[1] );
 				}
 				fourDice.RerollDice();
+
+				if ( numberOfGames == 1 ) {
+					Debug.WriteLine( fourDice.GameState.GetSerializationCode() );
+				}
 			}
 			var winner = FourDice.GetGameEndResult( fourDice.GameState ).WinningPlayer;
 			if ( numberOfGames == 1 ) {

@@ -12,6 +12,7 @@ namespace Assets.Scripts.DomainModel.AI
 		protected AIBase _opponentAI;
 		protected TurnAction[] bestActions = new TurnAction[2];
 		protected int bestValue = -10000;
+		protected int originalValue = 0;
 
 		public AIBase( PlayerType playerType, bool simulateOpponent = true )
 		{
@@ -26,6 +27,7 @@ namespace Assets.Scripts.DomainModel.AI
 		{
 			var gameState = new GameState( null, null );
 			originalGameState.CopyTo( gameState );
+			originalValue = GameStateValue( originalGameState );
 
 			bestActions = new TurnAction[2];
 			bestValue = -10000;
@@ -105,9 +107,10 @@ namespace Assets.Scripts.DomainModel.AI
 				}
 				else {
 					var value = GameStateValue( copiedGameState );
-                    if (_opponentAI != null)
+					value -= originalValue;
+					if (_opponentAI != null)
                     {
-                        value -= (int) (_opponentAI.GetNextMoveValue( copiedGameState ) * 0.6);
+                        value -= (int) (_opponentAI.GetNextMoveValue( copiedGameState ) * 0.3);
                     }
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
