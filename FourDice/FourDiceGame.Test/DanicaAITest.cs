@@ -23,8 +23,8 @@ namespace FourDiceGame.Test
 		[TestInitialize]
 		public void TestInit()
 		{
-			danicaAI1 = new BestAI( PlayerType.Player1, false );
-			danicaAI2 = new BestAI( PlayerType.Player2, false );
+			danicaAI1 = new BestAI( PlayerType.Player1, true );
+			danicaAI2 = new BestAI( PlayerType.Player2, true );
 		}
 
 		[TestMethod]

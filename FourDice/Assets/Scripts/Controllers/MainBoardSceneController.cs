@@ -284,7 +284,7 @@ public class MainBoardSceneController : MonoBehaviour
 		DeselectAllGamePieces();
 		DeselectAllLanePositions();
 
-		var useForwardSeeking = false;
+		var useForwardSeeking = true;
 
 
 		_fourDice = new FourDice( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
