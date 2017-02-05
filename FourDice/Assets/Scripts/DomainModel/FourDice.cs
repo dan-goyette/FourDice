@@ -654,6 +654,8 @@ namespace Assets.Scripts.DomainModel
 		{
 			var sb = new StringBuilder();
 
+			sb.Append( this.CurrentPlayerType == PlayerType.Player1 ? "1" : "2" );
+
 			for ( var i = 0; i < Dice.Length; i++ ) {
 				var die = Dice[i];
 				sb.Append( die.Value );
@@ -693,7 +695,10 @@ namespace Assets.Scripts.DomainModel
 
 		public void InitializeFromSerializationCode( string code )
 		{
-			var diceCodes = code.Substring( 0, 8 ).ToCharArray();
+			var playerCode = code.Substring( 0, 1 );
+			this.CurrentPlayerType = playerCode == "1" ? PlayerType.Player1 : PlayerType.Player2;
+
+			var diceCodes = code.Substring( 1, 8 ).ToCharArray();
 
 			for ( var i = 0; i < Dice.Length; i++ ) {
 				Dice[i].Value = int.Parse( diceCodes[2 * i].ToString() );
@@ -730,10 +735,10 @@ namespace Assets.Scripts.DomainModel
 			};
 
 
-			var player1AttackerCodes = pairs( code.Substring( 8, 10 ) );
-			var player1DefenderCodes = pairs( code.Substring( 18, 4 ) );
-			var player2AttackerCodes = pairs( code.Substring( 22, 10 ) );
-			var player2DefenderCodes = pairs( code.Substring( 32, 4 ) );
+			var player1AttackerCodes = pairs( code.Substring( 9, 10 ) );
+			var player1DefenderCodes = pairs( code.Substring( 19, 4 ) );
+			var player2AttackerCodes = pairs( code.Substring( 23, 10 ) );
+			var player2DefenderCodes = pairs( code.Substring( 33, 4 ) );
 
 
 			for ( int i = 0; i < Player1.Attackers.Length; i++ ) {

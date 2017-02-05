@@ -149,6 +149,7 @@ namespace FourDiceGame.Test
 		{
 
 			var initialGameState = new GameState( null, null );
+			initialGameState.CurrentPlayerType = PlayerType.Player2;
 			initialGameState.Dice[0].Value = 4;
 			initialGameState.Dice[0].IsChosen = true;
 			initialGameState.Dice[1].Value = 1;
@@ -182,6 +183,9 @@ namespace FourDiceGame.Test
 
 			var newGameState = new GameState( null, null );
 			newGameState.InitializeFromSerializationCode( initialGameState.GetSerializationCode() );
+
+
+			Assert.AreEqual( initialGameState.CurrentPlayerType, newGameState.CurrentPlayerType );
 
 			// Confirm the two game states are equal.
 			for ( int i = 0; i < newGameState.Dice.Length; i++ ) {

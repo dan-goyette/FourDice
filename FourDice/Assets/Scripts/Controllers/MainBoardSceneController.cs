@@ -271,8 +271,8 @@ public class MainBoardSceneController : MonoBehaviour
 		DeselectAllLanePositions();
 
 
-		_fourDice = new FourDice( null, null );// "DefenderAI" );
-		_turnStartGameState = new GameState( null, null );// "DefenderAI" );
+		_fourDice = new FourDice( null, "BestAI" );// "DefenderAI" );
+		_turnStartGameState = new GameState( null, "BestAI" );// "DefenderAI" );
 
 
 		var assembly = Assembly.GetExecutingAssembly();
@@ -284,21 +284,21 @@ public class MainBoardSceneController : MonoBehaviour
 		}
 		else {
 			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player1.AIName );
-			_player1AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player1, true );
+			_player1AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player1, false );
 		}
 		if ( string.IsNullOrEmpty( _fourDice.GameState.Player2.AIName ) ) {
 			_player2AI = null;
 		}
 		else {
 			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player2.AIName );
-			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, true );
+			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, false );
 		}
 
 		StartGameButton.gameObject.SetActive( false );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
-		WriteDebugButton.gameObject.SetActive( false );
+		WriteDebugButton.gameObject.SetActive( true );
 
 		SynchronizeBoardWithGameState();
 
@@ -311,6 +311,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	public void EndTurnButtonPressed()
 	{
+		AppendToLogText( string.Format( "{0} turn ended", _activePlayerType ) );
 		EndTurnButton.gameObject.SetActive( false );
 		SetActivePlayer( _activePlayerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1 );
 		_gameLoopPhase = GameLoopPhase.WaitingForDiceRoll;
@@ -342,7 +343,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 	public void WriteDebugButtonPressed()
 	{
-		AppendToLogText( _fourDice.GameState.GetAsciiState() );
+		var newText = string.Format( "{0}{1}{2}", _fourDice.GameState.GetSerializationCode(), Environment.NewLine, _fourDice.GameState.GetAsciiState() );
+		AppendToLogText( newText );
+
+
+		TextEditor te = new TextEditor();
+		te.text = LogText.text;
+		te.SelectAll();
+		te.Copy();
 	}
 
 
@@ -572,6 +580,7 @@ public class MainBoardSceneController : MonoBehaviour
 						}
 						else {
 							_gameLoopPhase = GameLoopPhase.SecondPieceTargetSelection;
+							AppendToLogText( "AI Chooses not to move their first piece." );
 						}
 					}
 				} );
@@ -726,7 +735,9 @@ public class MainBoardSceneController : MonoBehaviour
 											}
 
 
+
 											AppendToLogText( _fourDice.GameState.GetAsciiState() );
+											AppendToLogText( _fourDice.GameState.GetSerializationCode() );
 
 											// Mark the die as chosen, and slide it away.
 											die.ChooseDie();
@@ -955,6 +966,7 @@ public class MainBoardSceneController : MonoBehaviour
 						}
 						else {
 							// End Turn
+							AppendToLogText( "AI Chooses not to move their second piece." );
 							EndTurnButtonPressed();
 						}
 					}
@@ -1333,6 +1345,10 @@ public class MainBoardSceneController : MonoBehaviour
 
 				RollSelectedDice( isInitialDiceRoll: isInitialDiceRoll, callback: callback );
 			}
+
+			SynchronizeGameStateWithBoard();
+
+			AppendToLogText( this._fourDice.GameState.GetSerializationCode() );
 
 			// Update the Game State with the new Dice values.
 
