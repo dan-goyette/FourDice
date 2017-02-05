@@ -22,7 +22,7 @@ namespace Assets.Scripts.DomainModel.AI
             {
                 if (piece.BoardPositionType == BoardPositionType.OpponentGoal)
                 {
-                    value += 500;
+                    value += 600;
                 }
                 else if (piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null)
                 {

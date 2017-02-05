@@ -279,10 +279,10 @@ public class MainBoardSceneController : MonoBehaviour
 		DeselectAllGamePieces();
 		DeselectAllLanePositions();
 
-		var useForwardSeeking = false;
+		var useForwardSeeking = true;
 
-		_fourDice = new FourDice( null, "BestAI" );// "DefenderAI" );
-		_turnStartGameState = new GameState( null, "BestAI" );// "DefenderAI" );
+		_fourDice = new FourDice( "BestAI", "BestAI" );// "DefenderAI" );
+		_turnStartGameState = new GameState( "BestAI", "BestAI" );// "DefenderAI" );
 
 
 		var assembly = Assembly.GetExecutingAssembly();
