@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Assets.Scripts.DomainModel.AI;
 
 namespace Assets.Scripts.DomainModel
 {
@@ -424,6 +425,34 @@ namespace Assets.Scripts.DomainModel
 			return new GameEndResult() {
 				IsFinished = false
 			};
+		}
+
+		public static List<AIDefinition> GetAIDefinitions()
+		{
+			var retval = new List<AIDefinition>() {
+				new AIDefinition() {
+					ClassName = typeof(BestAI).Name,
+					FriendlyName = "BestAI",
+					DifficultyRating = 8
+				},
+				new AIDefinition() {
+					ClassName = typeof(AIBase).Name,
+					FriendlyName = "AIBase",
+					DifficultyRating = 6
+				},
+				new AIDefinition() {
+					ClassName = typeof(DefenderAI).Name,
+					FriendlyName = "Defender-Bot",
+					DifficultyRating = 3
+				},
+				new AIDefinition() {
+					ClassName = typeof(OffensiveAI).Name,
+					FriendlyName = "Attacker-Bot",
+					DifficultyRating = 1
+				}
+			};
+
+			return retval;
 		}
 	}
 
@@ -948,4 +977,12 @@ namespace Assets.Scripts.DomainModel
 			return sb.ToString();
 		}
 	}
+}
+
+
+public class AIDefinition
+{
+	public string ClassName;
+	public string FriendlyName;
+	public int DifficultyRating;
 }

@@ -17,7 +17,7 @@ public class MainBoardSceneController : MonoBehaviour
 	public GameObject[] InitialPlayer1DefenderPlaceHolders;
 	public GameObject[] InitialPlayer2DefenderPlaceHolders;
 
-	public Button StartGameButton;
+	public Button NewGameButton;
 	public Button EndTurnButton;
 	public Button RollDiceButton;
 	public Button UndoTurnButton;
@@ -26,6 +26,9 @@ public class MainBoardSceneController : MonoBehaviour
 	public Text Player2TurnLabel;
 	public Text LogText;
 	public InputField TurnStartSerialCode;
+
+	public NewGamePanelController NewGamePanel;
+
 
 	Vector3 _mainCameraStandardPosition;
 
@@ -81,11 +84,13 @@ public class MainBoardSceneController : MonoBehaviour
 
 		_gameLoopPhase = GameLoopPhase.Waiting;
 
-		StartGameButton.gameObject.SetActive( true );
+		NewGameButton.gameObject.SetActive( false );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
 		WriteDebugButton.gameObject.SetActive( false );
+
+		StartGame();
 
 	}
 
@@ -243,7 +248,7 @@ public class MainBoardSceneController : MonoBehaviour
 	}
 
 
-	public void StartGameButtonPressed()
+	public void StartGame()
 	{
 		for ( var i = 0; i < _player1Attackers.Length; i++ ) {
 			_player1Attackers[i].TurnStartPosition = InitialPlayer1AttackerPlaceHolders[i].transform.position;
@@ -281,8 +286,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 		var useForwardSeeking = false;
 
-		_fourDice = new FourDice( null, "BestAI" );// "DefenderAI" );
-		_turnStartGameState = new GameState( null, "BestAI" );// "DefenderAI" );
+
+		_fourDice = new FourDice( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
+		_turnStartGameState = new GameState( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
 
 
 		var assembly = Assembly.GetExecutingAssembly();
@@ -304,7 +310,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, useForwardSeeking );
 		}
 
-		StartGameButton.gameObject.SetActive( false );
+		NewGameButton.gameObject.SetActive( false );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
@@ -317,6 +323,11 @@ public class MainBoardSceneController : MonoBehaviour
 		StartCoroutine( InitiateStartGame() );
 	}
 
+
+	public void NewGameButtonPressed()
+	{
+		NewGamePanel.gameObject.GetComponent<Canvas>().enabled = true;
+	}
 
 
 	public void EndTurnButtonPressed()
@@ -909,7 +920,7 @@ public class MainBoardSceneController : MonoBehaviour
 							_gameLoopPhase = GameLoopPhase.GameOver;
 							AppendToLogText( string.Format( "{0} is the winner!", gameEnd.WinningPlayer ) );
 
-							StartGameButton.gameObject.SetActive( true );
+							NewGameButton.gameObject.SetActive( true );
 							EndTurnButton.gameObject.SetActive( false );
 							RollDiceButton.gameObject.SetActive( false );
 							UndoTurnButton.gameObject.SetActive( false );

@@ -11,6 +11,7 @@ public class LaunchScreenController : MonoBehaviour
 	public Image UIContainer;
 	public Button NewGameButton;
 	private Text _newGameButtonText;
+	public NewGamePanelController NewGamePanel;
 
 
 	float _fadeOverlayAlpha = 1;
@@ -27,6 +28,7 @@ public class LaunchScreenController : MonoBehaviour
 
 	private IEnumerator StartIntro()
 	{
+
 		var newLogoColor = new Color( FourDiceLogo.color.r, FourDiceLogo.color.g, FourDiceLogo.color.b, 0 );
 		FourDiceLogo.color = newLogoColor;
 
@@ -98,7 +100,7 @@ public class LaunchScreenController : MonoBehaviour
 
 	public void NewGameButtonPressed()
 	{
-
+		NewGamePanel.gameObject.GetComponent<Canvas>().enabled = true;
 	}
 
 	private void SetImageAlpha( Image image, float newAlpha )
