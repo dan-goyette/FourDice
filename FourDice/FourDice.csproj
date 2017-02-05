@@ -117,6 +117,7 @@
     <Compile Include="Assets\Scripts\Controllers\DieController.cs" />
     <Compile Include="Assets\Scripts\Controllers\GamePieceController.cs" />
     <Compile Include="Assets\Scripts\Controllers\LanePositionController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\LaunchScreenController.cs" />
     <Compile Include="Assets\Scripts\Controllers\MainBoardSceneController.cs" />
     <Compile Include="Assets\Scripts\Controllers\SelectableObjectController.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\AIBase.cs" />

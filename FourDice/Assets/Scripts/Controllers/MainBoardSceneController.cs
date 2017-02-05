@@ -279,6 +279,7 @@ public class MainBoardSceneController : MonoBehaviour
 		DeselectAllGamePieces();
 		DeselectAllLanePositions();
 
+		var useForwardSeeking = false;
 
 		_fourDice = new FourDice( null, "BestAI" );// "DefenderAI" );
 		_turnStartGameState = new GameState( null, "BestAI" );// "DefenderAI" );
@@ -293,14 +294,14 @@ public class MainBoardSceneController : MonoBehaviour
 		}
 		else {
 			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player1.AIName );
-			_player1AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player1, false );
+			_player1AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player1, useForwardSeeking );
 		}
 		if ( string.IsNullOrEmpty( _fourDice.GameState.Player2.AIName ) ) {
 			_player2AI = null;
 		}
 		else {
 			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player2.AIName );
-			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, false );
+			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, useForwardSeeking );
 		}
 
 		StartGameButton.gameObject.SetActive( false );
@@ -441,7 +442,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 			var currentPlayerAI = _activePlayerType == PlayerType.Player1 ? _player1AI : _player2AI;
-			var currentPlayerAIBestTurnAction = _activePlayerType == PlayerType.Player1 ? _bestPlayer2AITurnAction : _bestPlayer2AITurnAction;
+			var currentPlayerAIBestTurnAction = _activePlayerType == PlayerType.Player1 ? _bestPlayer1AITurnAction : _bestPlayer2AITurnAction;
 
 
 			// Main Loop - Observe changes to the state, potentially fall into an animation.
@@ -459,7 +460,7 @@ public class MainBoardSceneController : MonoBehaviour
 					DeselectAllLanePositions();
 					RollDiceButton.gameObject.SetActive( true );
 
-					if ( currentPlayerAI != null ) {
+					if ( currentPlayerAI != null && !(_player1AI != null && _player2AI != null) ) {
 						RollDieButtonPressed();
 					}
 				} );
@@ -599,7 +600,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 				if ( skippingPieceMove ) {
-					_gameLoopPhase = GameLoopPhase.SecondPieceTargetSelection;
+					_gameLoopPhase = GameLoopPhase.SecondPieceSelection;
 				}
 
 				// Wait for the player to select a piece.
