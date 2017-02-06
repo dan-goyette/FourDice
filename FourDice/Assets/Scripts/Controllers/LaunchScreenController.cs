@@ -14,15 +14,27 @@ public class LaunchScreenController : MonoBehaviour
 	public NewGamePanelController NewGamePanel;
 
 
+	public Button OptionsButton;
+	private Text _optionsButtonText;
+	public GameOptionsPanelController GameOptionsPanel;
+
+
 	float _fadeOverlayAlpha = 1;
 	float _targetLogoAlpha = 0;
 	float _targetUIContainerAlpha = 0;
 	float _targetNewGameButtonAlpha = 0;
+	float _targetOptionsButtonAlpha = 0;
 
 
 	// Use this for initialization
 	void Start()
 	{
+
+		var animationSpeed = PlayerPrefs.GetInt( "AnimationSpeed" );
+		if ( animationSpeed >= 1 ) {
+			Time.timeScale = animationSpeed;
+		}
+
 		StartCoroutine( StartIntro() );
 	}
 
@@ -35,12 +47,25 @@ public class LaunchScreenController : MonoBehaviour
 		var newUIContainerColor = new Color( UIContainer.color.r, UIContainer.color.g, UIContainer.color.b, 0 );
 		UIContainer.color = newUIContainerColor;
 
+
+
+
 		var newNewGameButtonImageColor = new Color( NewGameButton.image.color.r, NewGameButton.image.color.g, NewGameButton.image.color.b, 0 );
 		NewGameButton.image.color = newNewGameButtonImageColor;
 
 		_newGameButtonText = NewGameButton.GetComponentInChildren<Text>();
 		var newNewGameButtonTextColor = new Color( _newGameButtonText.color.r, _newGameButtonText.color.g, _newGameButtonText.color.b, 0 );
 		_newGameButtonText.color = newNewGameButtonTextColor;
+
+
+		var newOptionsButtonImageColor = new Color( OptionsButton.image.color.r, OptionsButton.image.color.g, OptionsButton.image.color.b, 0 );
+		OptionsButton.image.color = newOptionsButtonImageColor;
+
+		_optionsButtonText = OptionsButton.GetComponentInChildren<Text>();
+		var newOptionsButtonTextColor = new Color( _optionsButtonText.color.r, _optionsButtonText.color.g, _optionsButtonText.color.b, 0 );
+		_optionsButtonText.color = newOptionsButtonTextColor;
+
+
 
 		yield return new WaitUntil( () => _fadeOverlayAlpha <= 0 );
 
@@ -51,6 +76,7 @@ public class LaunchScreenController : MonoBehaviour
 		_targetLogoAlpha = 1;
 		_targetUIContainerAlpha = .3f;
 		_targetNewGameButtonAlpha = 1;
+		_targetOptionsButtonAlpha = 1;
 	}
 
 	private IEnumerator CreateDice()
@@ -96,6 +122,16 @@ public class LaunchScreenController : MonoBehaviour
 			var newTextColor = new Color( _newGameButtonText.color.r, _newGameButtonText.color.g, _newGameButtonText.color.b, newAlpha );
 			_newGameButtonText.color = newTextColor;
 		}
+
+
+		if ( OptionsButton.image.color.a < _targetOptionsButtonAlpha ) {
+			var newAlpha = OptionsButton.image.color.a + Time.deltaTime;
+			var newButtonColor = new Color( OptionsButton.image.color.r, OptionsButton.image.color.g, OptionsButton.image.color.b, newAlpha );
+			OptionsButton.image.color = newButtonColor;
+
+			var newTextColor = new Color( _optionsButtonText.color.r, _optionsButtonText.color.g, _optionsButtonText.color.b, newAlpha );
+			_optionsButtonText.color = newTextColor;
+		}
 	}
 
 	public void NewGameButtonPressed()
@@ -110,5 +146,9 @@ public class LaunchScreenController : MonoBehaviour
 	}
 
 
+	public void OptionsButtonPressed()
+	{
+		GameOptionsPanel.gameObject.GetComponent<Canvas>().enabled = true;
+	}
 
 }

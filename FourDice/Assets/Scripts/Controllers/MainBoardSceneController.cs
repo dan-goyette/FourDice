@@ -32,6 +32,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 	public NewGamePanelController NewGamePanel;
+	public GameOptionsPanelController GameOptionsPanel;
 
 
 	Vector3 _mainCameraStandardPosition;
@@ -88,7 +89,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		_gameLoopPhase = GameLoopPhase.Waiting;
 
-		NewGameButton.gameObject.SetActive( false );
+		NewGameButton.gameObject.SetActive( true );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
@@ -317,7 +318,7 @@ public class MainBoardSceneController : MonoBehaviour
 			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, useForwardSeeking );
 		}
 
-		NewGameButton.gameObject.SetActive( false );
+		NewGameButton.gameObject.SetActive( true );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
@@ -335,6 +336,15 @@ public class MainBoardSceneController : MonoBehaviour
 	{
 		NewGamePanel.gameObject.GetComponent<Canvas>().enabled = true;
 	}
+
+
+
+	public void GameOptionsButtonPressed()
+	{
+		GameOptionsPanel.gameObject.GetComponent<Canvas>().enabled = true;
+	}
+
+
 
 
 	public void EndTurnButtonPressed()
@@ -1255,153 +1265,158 @@ public class MainBoardSceneController : MonoBehaviour
 	}
 	private IEnumerator RollDiceCoroutine( bool isInitialDiceRoll, Action callback = null )
 	{
-		_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
-			GameObject = Camera.main.transform.gameObject,
-			TargetPosition = _mainCameraStandardPosition - new Vector3( 0, 0, 10 )
-		} );
 
+		bool keepRolling = true;
 
-
-		int diceMovingCount = 0;
-		for ( var i = 0; i < 4; i++ ) {
-			var die = _dice[i];
-			if ( !die.IsSelected && !die.IsRolling ) {
-				continue;
-			}
-			diceMovingCount++;
-			die.SetDeselectable( true );
-			die.Deselect();
-			die.SetDeselectable( false );
-			die.IsRolling = true;
-			die.UnchooseDie();
-
-			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
-				GameObject = die.gameObject,
-				TargetPosition = _dicePreRollPositions[i],
-				TargetRotation = UnityEngine.Random.rotation,
-				OnComplete = () => { diceMovingCount--; }
-			} );
-		}
-
-		// Let the dice get into position
-		yield return new WaitUntil( () => diceMovingCount == 0 );
-
-
-		if ( awaitFinalDiceRolls != null ) {
-			StopCoroutine( awaitFinalDiceRolls );
-		}
-
-		DiceKeeperCollider.enabled = true;
-
-		for ( var i = 0; i < 4; i++ ) {
-			var die = _dice[i];
-			if ( !die.IsRolling ) {
-				continue;
-			}
-
-			die.GetComponent<Rigidbody>().isKinematic = false;
-			die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), 0, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
-		}
-
-		awaitFinalDiceRolls = StartCoroutine( AwaitFinalDiceRolls( isInitialDiceRoll, callback ) );
-	}
-
-	private IEnumerator AwaitFinalDiceRolls( bool isInitialDiceRoll, Action callback = null )
-	{
-		// Give is a moment to ensure the die has started moving. 
-		yield return new WaitForSeconds( 0.25f );
-
-		float secondsPassed = 0;
-		float interval = 0.1f;
-		var shouldReroll = false;
-		while ( true ) {
-			if ( secondsPassed > 5.0f ) {
-				AppendToLogText( "Took too long. Rerolling." );
-				shouldReroll = true;
-				break;
-			}
-			if ( _dice.Any( d => d.IsMoving() ) ) {
-				secondsPassed += interval;
-				yield return new WaitForSeconds( interval );
-			}
-			else {
-				// The dice have stopped. 
-				if ( _dice.Select( d => d.GetDieValue() ).Any( dv => dv == null ) ) {
-					AppendToLogText( "Dice landed weird. Rerolling." );
-					shouldReroll = true;
-				}
-				break;
-			}
-		}
-		foreach ( var die in _dice ) {
-			die.GetComponent<Rigidbody>().isKinematic = true;
-		}
-
-		if ( shouldReroll ) {
-			RollSelectedDice( isInitialDiceRoll: isInitialDiceRoll, callback: callback );
-		}
-		else {
-			DiceKeeperCollider.enabled = false;
-			AppendToLogText( string.Format( "Dice values are: {0}", string.Join( ", ", _dice.Select( d => d.GetDieValue() ).Select( dv => dv == null ? "?" : dv.Value.ToString() ).ToArray() ) ) );
+		while ( keepRolling ) {
 
 
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 				GameObject = Camera.main.transform.gameObject,
-				TargetPosition = _mainCameraStandardPosition
+				TargetPosition = _mainCameraStandardPosition - new Vector3( 0, 0, 10 )
 			} );
+
 
 
 			int diceMovingCount = 0;
 			for ( var i = 0; i < 4; i++ ) {
 				var die = _dice[i];
+				if ( !die.IsSelected && !die.IsRolling ) {
+					continue;
+				}
 				diceMovingCount++;
+				die.SetDeselectable( true );
+				die.Deselect();
+				die.SetDeselectable( false );
+				die.IsRolling = true;
+				die.UnchooseDie();
 
-				var euler = FourDiceUtils.SnapTo( die.transform.localEulerAngles, 90 );
 				_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
 					GameObject = die.gameObject,
-					TargetPosition = _dicePositions[i],
-					TargetRotation = Quaternion.Euler( euler.x, euler.y, euler.z ),
+					TargetPosition = _dicePreRollPositions[i],
+					TargetRotation = UnityEngine.Random.rotation,
 					OnComplete = () => { diceMovingCount--; }
+				} );
+			}
+
+			// Let the dice get into position
+			yield return new WaitUntil( () => diceMovingCount == 0 );
+
+
+			if ( awaitFinalDiceRolls != null ) {
+				StopCoroutine( awaitFinalDiceRolls );
+			}
+
+			DiceKeeperCollider.enabled = true;
+
+			for ( var i = 0; i < 4; i++ ) {
+				var die = _dice[i];
+				if ( !die.IsRolling ) {
+					continue;
+				}
+
+				die.GetComponent<Rigidbody>().isKinematic = false;
+				die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), 0, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
+			}
+
+			//awaitFinalDiceRolls = StartCoroutine( AwaitFinalDiceRolls( isInitialDiceRoll, callback ) );
+
+			// Give is a moment to ensure the die has started moving. 
+			yield return new WaitForSeconds( 0.25f );
+
+			float secondsPassed = 0;
+			float interval = 0.1f;
+			var shouldReroll = false;
+			while ( true ) {
+				if ( secondsPassed > 5.0f ) {
+					AppendToLogText( "Took too long. Rerolling." );
+					shouldReroll = true;
+					break;
+				}
+				if ( _dice.Any( d => d.IsMoving() ) ) {
+					secondsPassed += interval;
+					yield return new WaitForSeconds( interval );
+				}
+				else {
+					// The dice have stopped. 
+					if ( _dice.Select( d => d.GetDieValue() ).Any( dv => dv == null ) ) {
+						AppendToLogText( "Dice landed weird. Rerolling." );
+						shouldReroll = true;
+					}
+					break;
+				}
+			}
+			foreach ( var die in _dice ) {
+				die.GetComponent<Rigidbody>().isKinematic = true;
+			}
+
+			if ( !shouldReroll ) {
+				DiceKeeperCollider.enabled = false;
+				AppendToLogText( string.Format( "Dice values are: {0}", string.Join( ", ", _dice.Select( d => d.GetDieValue() ).Select( dv => dv == null ? "?" : dv.Value.ToString() ).ToArray() ) ) );
+
+
+				_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+					GameObject = Camera.main.transform.gameObject,
+					TargetPosition = _mainCameraStandardPosition
 				} );
 
 
+				diceMovingCount = 0;
+				for ( var i = 0; i < 4; i++ ) {
+					var die = _dice[i];
+					diceMovingCount++;
+
+					var euler = FourDiceUtils.SnapTo( die.transform.localEulerAngles, 90 );
+					_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
+						GameObject = die.gameObject,
+						TargetPosition = _dicePositions[i],
+						TargetRotation = Quaternion.Euler( euler.x, euler.y, euler.z ),
+						OnComplete = () => { diceMovingCount--; }
+					} );
 
 
 
-			}
 
-			yield return new WaitUntil( () => diceMovingCount == 0 );
 
-			for ( var i = 0; i < 4; i++ ) {
-				_dice[i].IsRolling = false;
-			}
+				}
 
-			if ( !isInitialDiceRoll && _dice.Select( d => d.GetDieValue() ).Distinct().Count() == 1 ) {
-				// All the same number have been rolled. Reroll all die.
+				yield return new WaitUntil( () => diceMovingCount == 0 );
 
 				for ( var i = 0; i < 4; i++ ) {
-					_dice[i].Select( force: true );
+					_dice[i].IsRolling = false;
 				}
 
-				RollSelectedDice( isInitialDiceRoll: isInitialDiceRoll, callback: callback );
-			}
-			else {
+				if ( !isInitialDiceRoll && _dice.Select( d => d.GetDieValue() ).Distinct().Count() == 1 ) {
+					// All the same number have been rolled. Reroll all die.
 
-				SynchronizeGameStateWithBoard();
-				var serializationCode = _fourDice.GameState.GetSerializationCode();
-				AppendToLogText( serializationCode );
-				TurnStartSerialCode.text = serializationCode;
+					for ( var i = 0; i < 4; i++ ) {
+						_dice[i].Select( force: true );
+					}
 
-
-				// Update the Game State with the new Dice values.
-
-
-				if ( callback != null ) {
-					callback();
+					// Now keep rolling...
 				}
+				else {
 
+					keepRolling = false;
+
+					SynchronizeGameStateWithBoard();
+					var serializationCode = _fourDice.GameState.GetSerializationCode();
+					AppendToLogText( serializationCode );
+					TurnStartSerialCode.text = serializationCode;
+
+
+					// Update the Game State with the new Dice values.
+
+
+					if ( callback != null ) {
+						callback();
+					}
+
+				}
 			}
+
 		}
+
 	}
 
 	private void AppendToLogText( string text )
