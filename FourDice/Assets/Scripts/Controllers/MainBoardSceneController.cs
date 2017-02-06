@@ -27,6 +27,10 @@ public class MainBoardSceneController : MonoBehaviour
 	public Text LogText;
 	public InputField TurnStartSerialCode;
 
+	public Text Player1TurnText;
+	public Text Player2TurnText;
+
+
 	public NewGamePanelController NewGamePanel;
 
 
@@ -289,6 +293,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 		_fourDice = new FourDice( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
 		_turnStartGameState = new GameState( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
+
+		Player1TurnText.text = NewGamePanelController.Player1AI == null ? "Player 1" : NewGamePanelController.Player1AI;
+		Player2TurnText.text = NewGamePanelController.Player2AI == null ? "Player 2" : NewGamePanelController.Player2AI;
 
 
 		var assembly = Assembly.GetExecutingAssembly();
@@ -1378,20 +1385,22 @@ public class MainBoardSceneController : MonoBehaviour
 
 				RollSelectedDice( isInitialDiceRoll: isInitialDiceRoll, callback: callback );
 			}
+			else {
 
-			SynchronizeGameStateWithBoard();
-			var serializationCode = _fourDice.GameState.GetSerializationCode();
-			AppendToLogText( serializationCode );
-			TurnStartSerialCode.text = serializationCode;
-
-
-			// Update the Game State with the new Dice values.
+				SynchronizeGameStateWithBoard();
+				var serializationCode = _fourDice.GameState.GetSerializationCode();
+				AppendToLogText( serializationCode );
+				TurnStartSerialCode.text = serializationCode;
 
 
-			if ( callback != null ) {
-				callback();
+				// Update the Game State with the new Dice values.
+
+
+				if ( callback != null ) {
+					callback();
+				}
+
 			}
-
 		}
 	}
 
