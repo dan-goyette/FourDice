@@ -87,6 +87,14 @@ public class DieController : SelectableObjectController
 
 	}
 
+	protected override bool DisableCollisionWhenNotSelectable
+	{
+		get
+		{
+			return false;
+		}
+	}
+
 	// Update is called once per frame
 	protected override void Update()
 	{

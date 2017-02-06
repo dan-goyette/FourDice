@@ -14,6 +14,14 @@ public abstract class SelectableObjectController : MonoBehaviour
 	public bool CanSelect { get; private set; }
 	public bool CanDeselect { get; private set; }
 
+	protected virtual bool DisableCollisionWhenNotSelectable
+	{
+		get
+		{
+			return true;
+		}
+	}
+
 
 	private Material[] _materials;
 	private Color _targetEmissionColor;
@@ -89,6 +97,9 @@ public abstract class SelectableObjectController : MonoBehaviour
 		if ( (CanSelect && !canSelect) || (!CanSelect && canSelect) ) {
 			CanSelect = canSelect;
 			UpdateParticleSystems();
+			if ( DisableCollisionWhenNotSelectable ) {
+				this.gameObject.GetComponent<Collider>().enabled = canSelect;
+			}
 		}
 	}
 

@@ -60,10 +60,11 @@ public class NewGamePanelController : MonoBehaviour
 		SceneManager.LoadScene( "MainBoard" );
 	}
 
-	//public void Player1HumanToggleChanged() { }
-	//public void Player1AIToggleChanged() { }
-	//public void Player2HumanToggleChanged() { }
-	//public void Player2AIToggleChanged() { }
+
+	public void CancelButtonPressed()
+	{
+		this.gameObject.GetComponent<Canvas>().enabled = false;
+	}
 
 	public static string Player1AI;
 	public static string Player2AI;
