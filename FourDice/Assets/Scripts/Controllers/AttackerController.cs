@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class AttackerController : GamePieceController
 {
+	public AudioSource GoalAudioSource;
+
 	protected override void Start()
 	{
 		base.Start();

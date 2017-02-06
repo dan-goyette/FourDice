@@ -34,6 +34,12 @@ public class MainBoardSceneController : MonoBehaviour
 	public NewGamePanelController NewGamePanel;
 	public GameOptionsPanelController GameOptionsPanel;
 
+	public AudioSource DiceRollAudioSource;
+	public AudioClip[] DiceRollAudioClips;
+
+	public AudioSource SuccessAudioSource;
+	public AudioSource LossAudioSource;
+
 
 	Vector3 _mainCameraStandardPosition;
 
@@ -241,6 +247,24 @@ public class MainBoardSceneController : MonoBehaviour
 					}
 				}
 			}
+		}
+
+
+		// Update position of dice audio source.
+
+		if ( _dice.Any( d => d.IsRolling ) ) {
+			var rollingDice = _dice.Where( d => d.IsRolling );
+			Vector3 average = Vector3.zero;
+			int count = 0;
+			for ( int i = 0; i < _dice.Length; i++ ) {
+				if ( _dice[i].IsRolling ) {
+					average += _dice[i].gameObject.transform.position;
+					count++;
+				}
+			}
+			DiceRollAudioSource.transform.position = count == 0 ? new Vector3( 0, 0, 0 ) : average / count;
+
+
 		}
 	}
 
@@ -873,6 +897,10 @@ public class MainBoardSceneController : MonoBehaviour
 							_gameObjectAnimations.Add( movement2 );
 							yield return new WaitUntil( () => animationSegmentComplete );
 
+							if ( attackerHasReachedGoal ) {
+								((AttackerController)pieceToMove).GoalAudioSource.Play();
+							}
+
 							animationSegmentComplete = false;
 							var movement3 = new GameObjectTransformAnimation() {
 								GameObject = pieceToMove.gameObject,
@@ -881,11 +909,21 @@ public class MainBoardSceneController : MonoBehaviour
 								OnComplete = () => { animationSegmentComplete = true; }
 							};
 							_gameObjectAnimations.Add( movement3 );
+
+
+							if ( appliedGameLogEntry.CapturedAttackerIndex.HasValue ) {
+								yield return new WaitForSeconds( 0.1f );
+								pieceToMove.StrikeAudioSource.Play();
+							}
+
 							yield return new WaitUntil( () => animationSegmentComplete );
 
 
 
+
+
 							if ( appliedGameLogEntry.CapturedAttackerIndex.HasValue ) {
+
 								// Capture the piece and send it home.
 								var attacker = _activePlayerType == PlayerType.Player1
 									? _player2Attackers[appliedGameLogEntry.CapturedAttackerIndex.Value]
@@ -935,6 +973,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 						if ( gameEnd.IsFinished ) {
 							_gameLoopPhase = GameLoopPhase.GameOver;
+
+							if ( gameEnd.WinningPlayer == PlayerType.Player1 ) {
+								SuccessAudioSource.Play();
+							}
+							else {
+								LossAudioSource.Play();
+							}
+
 							AppendToLogText( string.Format( "{0} is the winner!", gameEnd.WinningPlayer ) );
 
 							NewGameButton.gameObject.SetActive( true );
@@ -1316,13 +1362,18 @@ public class MainBoardSceneController : MonoBehaviour
 				}
 
 				die.GetComponent<Rigidbody>().isKinematic = false;
-				die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), 0, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
+				die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), -5, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
 			}
 
-			//awaitFinalDiceRolls = StartCoroutine( AwaitFinalDiceRolls( isInitialDiceRoll, callback ) );
+
 
 			// Give is a moment to ensure the die has started moving. 
-			yield return new WaitForSeconds( 0.25f );
+			yield return new WaitForSeconds( 0.1f );
+
+
+			var diceAudio = DiceRollAudioClips[FourDiceUtils.Random.Next( 0, DiceRollAudioClips.Length )];
+			DiceRollAudioSource.PlayOneShot( diceAudio );
+
 
 			float secondsPassed = 0;
 			float interval = 0.1f;

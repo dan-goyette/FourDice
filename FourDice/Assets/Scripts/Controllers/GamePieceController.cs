@@ -22,6 +22,8 @@ public abstract class GamePieceController : SelectableObjectController
 
 	public abstract PieceType PieceType { get; }
 
+	public AudioSource StrikeAudioSource;
+
 	protected override void Awake()
 	{
 		base.Awake();

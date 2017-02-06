@@ -42,6 +42,12 @@ public class NewGamePanelController : MonoBehaviour
 
 		Player1AIDropdown.options = _aiOptions;
 		Player2AIDropdown.options = _aiOptions;
+
+		for ( var i = 0; i < _aiOptions.Count; i++ ) {
+			if ( _aiOptions[i].text == "BestAI" ) {
+				Player2AIDropdown.value = i;
+			}
+		}
 	}
 
 	// Update is called once per frame
