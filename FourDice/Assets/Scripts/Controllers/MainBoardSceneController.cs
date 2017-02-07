@@ -327,11 +327,13 @@ public class MainBoardSceneController : MonoBehaviour
 		var useForwardSeeking = true;
 
 
-		_fourDice = new FourDice( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
-		_turnStartGameState = new GameState( NewGamePanelController.Player1AI, NewGamePanelController.Player2AI );
+		_fourDice = new FourDice( NewGamePanelController.Player1AI == null ? null : NewGamePanelController.Player1AI.ClassName,
+			NewGamePanelController.Player2AI == null ? null : NewGamePanelController.Player2AI.ClassName );
+		_turnStartGameState = new GameState( NewGamePanelController.Player1AI == null ? null : NewGamePanelController.Player1AI.ClassName,
+			NewGamePanelController.Player2AI == null ? null : NewGamePanelController.Player2AI.ClassName );
 
-		Player1TurnText.text = NewGamePanelController.Player1AI == null ? "Player 1" : NewGamePanelController.Player1AI;
-		Player2TurnText.text = NewGamePanelController.Player2AI == null ? "Player 2" : NewGamePanelController.Player2AI;
+		Player1TurnText.text = NewGamePanelController.Player1AI == null ? "Player 1" : NewGamePanelController.Player1AI.FriendlyName;
+		Player2TurnText.text = NewGamePanelController.Player2AI == null ? "Player 2" : NewGamePanelController.Player2AI.FriendlyName;
 
 
 		var assembly = Assembly.GetExecutingAssembly();
@@ -1269,6 +1271,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 			_player1Attackers[i].BoardPositionType = _fourDice.GameState.Player1.Attackers[i].BoardPositionType;
 			_player1Attackers[i].LanePosition = _fourDice.GameState.Player1.Attackers[i].LanePosition;
+			_player1Attackers[i].InUpperSlot = _player1Attackers[i].TurnStartInUpperSlot;
 		}
 		for ( var i = 0; i < _player1Defenders.Length; i++ ) {
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
@@ -1279,8 +1282,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 			_player1Defenders[i].BoardPositionType = _fourDice.GameState.Player1.Defenders[i].BoardPositionType;
 			_player1Defenders[i].LanePosition = _fourDice.GameState.Player1.Defenders[i].LanePosition;
+			_player1Defenders[i].InUpperSlot = _player1Defenders[i].TurnStartInUpperSlot;
 		}
-
 
 		for ( var i = 0; i < _player2Attackers.Length; i++ ) {
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
@@ -1291,6 +1294,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 			_player2Attackers[i].BoardPositionType = _fourDice.GameState.Player2.Attackers[i].BoardPositionType;
 			_player2Attackers[i].LanePosition = _fourDice.GameState.Player2.Attackers[i].LanePosition;
+			_player2Attackers[i].InUpperSlot = _player2Attackers[i].TurnStartInUpperSlot;
 		}
 		for ( var i = 0; i < _player2Defenders.Length; i++ ) {
 			_gameObjectAnimations.Add( new GameObjectTransformAnimation() {
@@ -1301,14 +1305,10 @@ public class MainBoardSceneController : MonoBehaviour
 
 			_player2Defenders[i].BoardPositionType = _fourDice.GameState.Player2.Defenders[i].BoardPositionType;
 			_player2Defenders[i].LanePosition = _fourDice.GameState.Player2.Defenders[i].LanePosition;
+			_player2Defenders[i].InUpperSlot = _player2Defenders[i].TurnStartInUpperSlot;
 		}
 
-
-
 		yield return new WaitForSeconds( 1 );
-
-
-
 	}
 
 	private void SetActivePlayer( PlayerType playerType )
@@ -1396,6 +1396,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 			var diceAudio = DiceRollAudioClips[FourDiceUtils.Random.Next( 0, DiceRollAudioClips.Length )];
+			DiceRollAudioSource.pitch = UnityEngine.Random.Range( 0.9f, 1.1f );
 			DiceRollAudioSource.PlayOneShot( diceAudio );
 
 

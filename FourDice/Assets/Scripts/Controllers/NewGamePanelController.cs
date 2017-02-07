@@ -44,7 +44,7 @@ public class NewGamePanelController : MonoBehaviour
 		Player2AIDropdown.options = _aiOptions;
 
 		for ( var i = 0; i < _aiOptions.Count; i++ ) {
-			if ( _aiOptions[i].text == "BestAI" ) {
+			if ( _aiOptions[i].text.StartsWith( "BestAI" ) ) {
 				Player2AIDropdown.value = i;
 			}
 		}
@@ -60,8 +60,8 @@ public class NewGamePanelController : MonoBehaviour
 
 	public void StartGameButtonPressed()
 	{
-		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value].ClassName : null;
-		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value].ClassName : null;
+		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value] : null;
+		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value] : null;
 
 		SceneManager.LoadScene( "MainBoard" );
 	}
@@ -72,6 +72,6 @@ public class NewGamePanelController : MonoBehaviour
 		this.gameObject.GetComponent<Canvas>().enabled = false;
 	}
 
-	public static string Player1AI;
-	public static string Player2AI;
+	public static AIDefinition Player1AI;
+	public static AIDefinition Player2AI;
 }

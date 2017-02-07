@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Constants;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,8 @@ public class LaunchScreenController : MonoBehaviour
 	private Text _newGameButtonText;
 	public NewGamePanelController NewGamePanel;
 
+	public Text VersionText;
+
 
 	public Button OptionsButton;
 	private Text _optionsButtonText;
@@ -21,6 +24,7 @@ public class LaunchScreenController : MonoBehaviour
 
 	float _fadeOverlayAlpha = 1;
 	float _targetLogoAlpha = 0;
+	float _targetVersionAlpha = 0;
 	float _targetUIContainerAlpha = 0;
 	float _targetNewGameButtonAlpha = 0;
 	float _targetOptionsButtonAlpha = 0;
@@ -35,6 +39,8 @@ public class LaunchScreenController : MonoBehaviour
 			Time.timeScale = animationSpeed;
 		}
 
+		VersionText.text = string.Format( "v{0}", ApplicationConstants.ApplicationVersion );
+
 		StartCoroutine( StartIntro() );
 	}
 
@@ -48,7 +54,8 @@ public class LaunchScreenController : MonoBehaviour
 		UIContainer.color = newUIContainerColor;
 
 
-
+		var newVersionColor = new Color( VersionText.color.r, VersionText.color.g, VersionText.color.b, 0 );
+		VersionText.color = newVersionColor;
 
 		var newNewGameButtonImageColor = new Color( NewGameButton.image.color.r, NewGameButton.image.color.g, NewGameButton.image.color.b, 0 );
 		NewGameButton.image.color = newNewGameButtonImageColor;
@@ -74,6 +81,7 @@ public class LaunchScreenController : MonoBehaviour
 
 		yield return new WaitForSeconds( 2 );
 		_targetLogoAlpha = 1;
+		_targetVersionAlpha = 1;
 		_targetUIContainerAlpha = .3f;
 		_targetNewGameButtonAlpha = 1;
 		_targetOptionsButtonAlpha = 1;
@@ -105,6 +113,12 @@ public class LaunchScreenController : MonoBehaviour
 			var newAlpha = FourDiceLogo.color.a + Time.deltaTime * 2f;
 			var newColor = new Color( FourDiceLogo.color.r, FourDiceLogo.color.g, FourDiceLogo.color.b, newAlpha );
 			FourDiceLogo.color = newColor;
+		}
+
+		if ( VersionText.color.a != _targetVersionAlpha ) {
+			var newAlpha = VersionText.color.a + Time.deltaTime * 2f;
+			var newColor = new Color( VersionText.color.r, VersionText.color.g, VersionText.color.b, newAlpha );
+			VersionText.color = newColor;
 		}
 
 		if ( UIContainer.color.a < _targetUIContainerAlpha ) {
