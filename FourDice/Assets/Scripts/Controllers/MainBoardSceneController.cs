@@ -26,6 +26,7 @@ public class MainBoardSceneController : MonoBehaviour
 	public Text Player2TurnLabel;
 	public Text LogText;
 	public InputField TurnStartSerialCode;
+	public Text InfoText;
 
 	public Text Player1TurnText;
 	public Text Player2TurnText;
@@ -39,6 +40,8 @@ public class MainBoardSceneController : MonoBehaviour
 
 	public AudioSource SuccessAudioSource;
 	public AudioSource LossAudioSource;
+
+
 
 
 	Vector3 _mainCameraStandardPosition;
@@ -266,6 +269,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 		}
+
+		if ( InfoText.enabled ) {
+			_infoTextTimeRemaining -= Time.deltaTime;
+			if ( _infoTextTimeRemaining < 0 ) {
+				InfoText.enabled = false;
+			}
+
+		}
 	}
 
 	public void DeserializeButtonPressed()
@@ -425,6 +436,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private IEnumerator InitiateStartGame()
 	{
+		SetInfoText( "Rolling to see who plays first" );
 		AppendToLogText( "Rolling to see who plays first." );
 
 		int player1Score = 0;
@@ -465,6 +477,7 @@ public class MainBoardSceneController : MonoBehaviour
 				player2Score = _dice[2].GetDieValue().Value + _dice[3].GetDieValue().Value;
 
 				if ( player1Score == player2Score ) {
+					SetInfoText( "Tie Score. Rerolling." );
 					AppendToLogText( "Tie score. Rerolling." );
 				}
 			}
@@ -474,6 +487,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		SynchronizeGameStateWithBoard();
 
+		SetInfoText( string.Format( "{0} plays first", _activePlayerType ) );
 		AppendToLogText( string.Format( "{0} plays first", _activePlayerType ) );
 
 		// The dice have already been rolled. Skip right to die selection.
@@ -981,6 +995,7 @@ public class MainBoardSceneController : MonoBehaviour
 								LossAudioSource.Play();
 							}
 
+							SetInfoText( string.Format( "{0} wins!", gameEnd.WinningPlayer ), duration: 100 );
 							AppendToLogText( string.Format( "{0} is the winner!", gameEnd.WinningPlayer ) );
 
 							NewGameButton.gameObject.SetActive( true );
@@ -1209,6 +1224,15 @@ public class MainBoardSceneController : MonoBehaviour
 			_fourDice.GameState.Player2.Defenders[i].LanePosition = _player2Defenders[i].LanePosition;
 		}
 
+	}
+
+
+	float _infoTextTimeRemaining;
+	private void SetInfoText( string text, float duration = 5 )
+	{
+		InfoText.enabled = true;
+		InfoText.text = text;
+		_infoTextTimeRemaining = duration;
 	}
 
 	private void SynchronizeBoardWithGameState()
@@ -1443,6 +1467,8 @@ public class MainBoardSceneController : MonoBehaviour
 					for ( var i = 0; i < 4; i++ ) {
 						_dice[i].Select( force: true );
 					}
+
+					SetInfoText( "Four of a kind. Rerolling all dice..." );
 
 					// Now keep rolling...
 				}
