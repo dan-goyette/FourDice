@@ -17,23 +17,27 @@ public class MainBoardSceneController : MonoBehaviour
 	public GameObject[] InitialPlayer1DefenderPlaceHolders;
 	public GameObject[] InitialPlayer2DefenderPlaceHolders;
 
-	public Button NewGameButton;
 	public Button EndTurnButton;
 	public Button RollDiceButton;
 	public Button UndoTurnButton;
-	public Button WriteDebugButton;
 	public Text Player1TurnLabel;
 	public Text Player2TurnLabel;
 	public Text LogText;
 	public InputField TurnStartSerialCode;
 	public Text InfoText;
+	public Canvas DebugCanvas;
 
 	public Text Player1TurnText;
 	public Text Player2TurnText;
 
 
-	public NewGamePanelController NewGamePanel;
-	public GameOptionsPanelController GameOptionsPanel;
+
+
+	public void ToggleDebugUI()
+	{
+		DebugCanvas.enabled = !DebugCanvas.enabled;
+	}
+
 
 	public AudioSource DiceRollAudioSource;
 	public AudioClip[] DiceRollAudioClips;
@@ -98,11 +102,9 @@ public class MainBoardSceneController : MonoBehaviour
 
 		_gameLoopPhase = GameLoopPhase.Waiting;
 
-		NewGameButton.gameObject.SetActive( true );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
-		WriteDebugButton.gameObject.SetActive( false );
 
 		StartGame();
 
@@ -355,11 +357,9 @@ public class MainBoardSceneController : MonoBehaviour
 			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, useForwardSeeking );
 		}
 
-		NewGameButton.gameObject.SetActive( true );
 		EndTurnButton.gameObject.SetActive( false );
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
-		WriteDebugButton.gameObject.SetActive( true );
 
 		SynchronizeBoardWithGameState();
 
@@ -367,20 +367,6 @@ public class MainBoardSceneController : MonoBehaviour
 
 		StartCoroutine( InitiateStartGame() );
 	}
-
-
-	public void NewGameButtonPressed()
-	{
-		NewGamePanel.gameObject.GetComponent<Canvas>().enabled = true;
-	}
-
-
-
-	public void GameOptionsButtonPressed()
-	{
-		GameOptionsPanel.gameObject.GetComponent<Canvas>().enabled = true;
-	}
-
 
 
 
@@ -1000,11 +986,9 @@ public class MainBoardSceneController : MonoBehaviour
 							SetInfoText( string.Format( "{0} wins!", gameEnd.WinningPlayer ), duration: 100 );
 							AppendToLogText( string.Format( "{0} is the winner!", gameEnd.WinningPlayer ) );
 
-							NewGameButton.gameObject.SetActive( true );
 							EndTurnButton.gameObject.SetActive( false );
 							RollDiceButton.gameObject.SetActive( false );
 							UndoTurnButton.gameObject.SetActive( false );
-							WriteDebugButton.gameObject.SetActive( false );
 
 							DeselectAllGamePieces();
 							DeselectAllLanePositions();
@@ -1496,6 +1480,12 @@ public class MainBoardSceneController : MonoBehaviour
 		}
 
 	}
+
+	public void MenuButtonPressed()
+	{
+		var optionsPanel = (GameObject)Instantiate( Resources.Load( "MenuUIPanel" ) );
+	}
+
 
 	private void AppendToLogText( string text )
 	{

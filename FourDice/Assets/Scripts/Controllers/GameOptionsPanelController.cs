@@ -39,7 +39,7 @@ public class GameOptionsPanelController : MonoBehaviour
 
 	public void CancelButtonPressed()
 	{
-		this.gameObject.GetComponent<Canvas>().enabled = false;
+		Destroy( this.gameObject );
 	}
 
 }

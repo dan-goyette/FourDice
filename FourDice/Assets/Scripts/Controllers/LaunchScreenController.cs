@@ -148,11 +148,6 @@ public class LaunchScreenController : MonoBehaviour
 		}
 	}
 
-	public void NewGameButtonPressed()
-	{
-		NewGamePanel.gameObject.GetComponent<Canvas>().enabled = true;
-	}
-
 	private void SetImageAlpha( Image image, float newAlpha )
 	{
 		var newColor = new Color( image.color.r, image.color.g, image.color.b, newAlpha );
@@ -160,9 +155,15 @@ public class LaunchScreenController : MonoBehaviour
 	}
 
 
+	public void NewGameButtonPressed()
+	{
+		var newGamePanel = (GameObject)Instantiate( Resources.Load( "NewGamePanel" ) );
+	}
+
+
 	public void OptionsButtonPressed()
 	{
-		GameOptionsPanel.gameObject.GetComponent<Canvas>().enabled = true;
+		var optionsPanel = (GameObject)Instantiate( Resources.Load( "GameOptionsPanel" ) );
 	}
 
 }

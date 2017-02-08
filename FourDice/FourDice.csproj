@@ -111,9 +111,11 @@
     <Compile Include="Assets\Scripts\Controllers\DieController.cs" />
     <Compile Include="Assets\Scripts\Controllers\GameOptionsPanelController.cs" />
     <Compile Include="Assets\Scripts\Controllers\GamePieceController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\GameRulesPanelController.cs" />
     <Compile Include="Assets\Scripts\Controllers\LanePositionController.cs" />
     <Compile Include="Assets\Scripts\Controllers\LaunchScreenController.cs" />
     <Compile Include="Assets\Scripts\Controllers\MainBoardSceneController.cs" />
+    <Compile Include="Assets\Scripts\Controllers\MenuUIController.cs" />
     <Compile Include="Assets\Scripts\Controllers\NewGamePanelController.cs" />
     <Compile Include="Assets\Scripts\Controllers\SelectableObjectController.cs" />
     <Compile Include="Assets\Scripts\DomainModel\AI\AIBase.cs" />

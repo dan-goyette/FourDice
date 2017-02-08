@@ -69,7 +69,7 @@ public class NewGamePanelController : MonoBehaviour
 
 	public void CancelButtonPressed()
 	{
-		this.gameObject.GetComponent<Canvas>().enabled = false;
+		Destroy( this.gameObject );
 	}
 
 	public static AIDefinition Player1AI;
