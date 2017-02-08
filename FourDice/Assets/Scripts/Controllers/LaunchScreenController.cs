@@ -11,23 +11,23 @@ public class LaunchScreenController : MonoBehaviour
 	public Text FourDiceLogo;
 	public Image UIContainer;
 	public Button NewGameButton;
+	public Button GameRulesButton;
 	private Text _newGameButtonText;
-	public NewGamePanelController NewGamePanel;
+	private Text _gameRulesButtonText;
 
 	public Text VersionText;
 
 
 	public Button OptionsButton;
 	private Text _optionsButtonText;
-	public GameOptionsPanelController GameOptionsPanel;
 
 
 	float _fadeOverlayAlpha = 1;
 	float _targetLogoAlpha = 0;
 	float _targetVersionAlpha = 0;
 	float _targetUIContainerAlpha = 0;
-	float _targetNewGameButtonAlpha = 0;
-	float _targetOptionsButtonAlpha = 0;
+
+	float _targetButtonAlpha = 0;
 
 
 	// Use this for initialization
@@ -74,6 +74,17 @@ public class LaunchScreenController : MonoBehaviour
 
 
 
+
+
+		var newGameRulesButtonImageColor = new Color( GameRulesButton.image.color.r, GameRulesButton.image.color.g, GameRulesButton.image.color.b, 0 );
+		GameRulesButton.image.color = newGameRulesButtonImageColor;
+
+		_gameRulesButtonText = GameRulesButton.GetComponentInChildren<Text>();
+		var newGameRulesButtonTextColor = new Color( _gameRulesButtonText.color.r, _gameRulesButtonText.color.g, _gameRulesButtonText.color.b, 0 );
+		_gameRulesButtonText.color = newGameRulesButtonTextColor;
+
+
+
 		yield return new WaitUntil( () => _fadeOverlayAlpha <= 0 );
 
 		// Create Dice
@@ -83,8 +94,7 @@ public class LaunchScreenController : MonoBehaviour
 		_targetLogoAlpha = 1;
 		_targetVersionAlpha = 1;
 		_targetUIContainerAlpha = .3f;
-		_targetNewGameButtonAlpha = 1;
-		_targetOptionsButtonAlpha = 1;
+		_targetButtonAlpha = 1;
 	}
 
 	private IEnumerator CreateDice()
@@ -128,7 +138,7 @@ public class LaunchScreenController : MonoBehaviour
 		}
 
 
-		if ( NewGameButton.image.color.a < _targetNewGameButtonAlpha ) {
+		if ( NewGameButton.image.color.a < _targetButtonAlpha ) {
 			var newAlpha = NewGameButton.image.color.a + Time.deltaTime;
 			var newButtonColor = new Color( NewGameButton.image.color.r, NewGameButton.image.color.g, NewGameButton.image.color.b, newAlpha );
 			NewGameButton.image.color = newButtonColor;
@@ -138,13 +148,23 @@ public class LaunchScreenController : MonoBehaviour
 		}
 
 
-		if ( OptionsButton.image.color.a < _targetOptionsButtonAlpha ) {
+		if ( OptionsButton.image.color.a < _targetButtonAlpha ) {
 			var newAlpha = OptionsButton.image.color.a + Time.deltaTime;
 			var newButtonColor = new Color( OptionsButton.image.color.r, OptionsButton.image.color.g, OptionsButton.image.color.b, newAlpha );
 			OptionsButton.image.color = newButtonColor;
 
 			var newTextColor = new Color( _optionsButtonText.color.r, _optionsButtonText.color.g, _optionsButtonText.color.b, newAlpha );
 			_optionsButtonText.color = newTextColor;
+		}
+
+
+		if ( GameRulesButton.image.color.a < _targetButtonAlpha ) {
+			var newAlpha = GameRulesButton.image.color.a + Time.deltaTime;
+			var newButtonColor = new Color( GameRulesButton.image.color.r, GameRulesButton.image.color.g, GameRulesButton.image.color.b, newAlpha );
+			GameRulesButton.image.color = newButtonColor;
+
+			var newTextColor = new Color( _gameRulesButtonText.color.r, _gameRulesButtonText.color.g, _gameRulesButtonText.color.b, newAlpha );
+			_gameRulesButtonText.color = newTextColor;
 		}
 	}
 
@@ -157,13 +177,19 @@ public class LaunchScreenController : MonoBehaviour
 
 	public void NewGameButtonPressed()
 	{
-		var newGamePanel = (GameObject)Instantiate( Resources.Load( "NewGamePanel" ) );
+		Instantiate( Resources.Load( "NewGamePanel" ) );
+	}
+
+
+	public void GameRulesButtonPressed()
+	{
+		Instantiate( Resources.Load( "GameRulesPanel" ) );
 	}
 
 
 	public void OptionsButtonPressed()
 	{
-		var optionsPanel = (GameObject)Instantiate( Resources.Load( "GameOptionsPanel" ) );
+		Instantiate( Resources.Load( "GameOptionsPanel" ) );
 	}
 
 }
