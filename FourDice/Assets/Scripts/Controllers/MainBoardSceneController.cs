@@ -78,6 +78,13 @@ public class MainBoardSceneController : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
+
+		var animationSpeed = PlayerPrefs.GetInt( "AnimationSpeed" );
+		if ( animationSpeed >= 1 ) {
+			Time.timeScale = animationSpeed;
+		}
+
+
 		_dice = new DieController[4];
 		_dicePositions = new Vector3[4];
 		_dicePreRollPositions = new Vector3[4];
@@ -1370,7 +1377,7 @@ public class MainBoardSceneController : MonoBehaviour
 				}
 
 				die.GetComponent<Rigidbody>().isKinematic = false;
-				die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), -5, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
+				die.GetComponent<Rigidbody>().AddForceAtPosition( new Vector3( UnityEngine.Random.Range( -20, 20 ), -10, UnityEngine.Random.Range( -5, 5 ) ) * 25, new Vector3( 2, 2, 2 ), ForceMode.Impulse );
 			}
 
 
@@ -1380,7 +1387,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 			var diceAudio = DiceRollAudioClips[FourDiceUtils.Random.Next( 0, DiceRollAudioClips.Length )];
-			DiceRollAudioSource.pitch = UnityEngine.Random.Range( 0.9f, 1.1f );
+			DiceRollAudioSource.pitch = UnityEngine.Random.Range( 0.8f, 1.2f );
 			DiceRollAudioSource.PlayOneShot( diceAudio );
 
 
