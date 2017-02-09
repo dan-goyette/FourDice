@@ -37,18 +37,23 @@ namespace Assets.Scripts.DomainModel.AI
 			for ( var position = 1; position < FourDice.Player2GoalLanePosition; position++ ) {
 				var myPosition = PositionValue( position );
 				List<GamePiece> piecesAtLocation;
+
 				if ( !allPiecesAtPositions.TryGetValue( myPosition, out piecesAtLocation ) ) {
 					piecesAtLocation = new List<GamePiece>();
 				}
 				if ( piecesAtLocation.Count() == 2 ) {
-					if ( position <= FourDice.Player1ThresholdLanePosition && (piecesAtLocation.ElementAt( 0 ).PlayerType != _playerType || piecesAtLocation.ElementAt( 1 ).PlayerType != _playerType) ) {
-						value += 0;
-					}
-					else if ( position > FourDice.Player1ThresholdLanePosition ) {
-						value -= 500;
-					}
-					else {
-						value -= 30;
+
+					PlayerType PT0 = piecesAtLocation.ElementAt( 0 ).PlayerType;
+					PlayerType PT1 = piecesAtLocation.ElementAt( 1 ).PlayerType;
+					if ( PT0 == _playerType || PT1 == _playerType ) {
+						// It's good to double up next to an opponent piece on my side of the board
+						if ( position <= FourDice.Player1ThresholdLanePosition && (PT0 != _playerType || PT1 != _playerType) ) {
+							value += 0;
+						}
+						// It's bad to double up on the opponent's side of the board
+						else if ( position > FourDice.Player1ThresholdLanePosition ) {
+							value -= 500;
+						}
 					}
 				}
 			}
