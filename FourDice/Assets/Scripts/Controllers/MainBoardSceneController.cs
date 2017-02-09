@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Assets.Scripts.DomainModel;
 using Assets.Scripts.DomainModel.AI;
 using UnityEngine;
@@ -345,7 +344,7 @@ public class MainBoardSceneController : MonoBehaviour
 		Player2TurnText.text = NewGamePanelController.Player2AI == null ? "Player 2" : NewGamePanelController.Player2AI.FriendlyName;
 
 
-		var assembly = Assembly.GetExecutingAssembly();
+		//var assembly = Assembly.GetExecutingAssembly();
 
 
 
@@ -353,15 +352,42 @@ public class MainBoardSceneController : MonoBehaviour
 			_player1AI = null;
 		}
 		else {
-			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player1.AIName );
-			_player1AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player1, useForwardSeeking );
+			switch ( _fourDice.GameState.Player1.AIName ) {
+				case "AIBase":
+					_player1AI = new AIBase( PlayerType.Player1, true );
+					break;
+				case "OffensiveAI":
+					_player1AI = new OffensiveAI( PlayerType.Player1, true );
+					break;
+				case "DefenderAI":
+					_player1AI = new DefenderAI( PlayerType.Player1, true );
+					break;
+				default:
+					_player1AI = new BestAI( PlayerType.Player1, true );
+					break;
+
+			}
+
 		}
 		if ( string.IsNullOrEmpty( _fourDice.GameState.Player2.AIName ) ) {
 			_player2AI = null;
 		}
 		else {
-			var type = assembly.GetTypes().First( t => t.Name == _fourDice.GameState.Player2.AIName );
-			_player2AI = (AIBase)Activator.CreateInstance( type, PlayerType.Player2, useForwardSeeking );
+			switch ( _fourDice.GameState.Player2.AIName ) {
+				case "AIBase":
+					_player2AI = new AIBase( PlayerType.Player2, true );
+					break;
+				case "OffensiveAI":
+					_player2AI = new OffensiveAI( PlayerType.Player2, true );
+					break;
+				case "DefenderAI":
+					_player2AI = new DefenderAI( PlayerType.Player2, true );
+					break;
+				default:
+					_player2AI = new BestAI( PlayerType.Player2, true );
+					break;
+
+			}
 		}
 
 		EndTurnButton.gameObject.SetActive( false );
