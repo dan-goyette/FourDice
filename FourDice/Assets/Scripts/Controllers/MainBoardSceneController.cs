@@ -30,6 +30,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	public Text Player1TurnText;
 	public Text Player2TurnText;
+	public Light MainLight;
 
 
 
@@ -120,6 +121,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		if ( Application.platform == RuntimePlatform.IPhonePlayer ) {
 			Utils.SwitchToMobileMaterials();
+			MainLight.intensity = 4;
 		}
 
 		StartGame();
