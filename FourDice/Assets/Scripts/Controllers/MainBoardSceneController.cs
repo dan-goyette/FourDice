@@ -126,10 +126,19 @@ public class MainBoardSceneController : MonoBehaviour
 			Camera.main.transform.position = new Vector3( 0, 17, -9f );
 			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
 		}
+		else if ( FourDiceUtils.AreClose( Camera.main.aspect, 5f / 4f, 0.01f ) ) {
+			Camera.main.transform.position = new Vector3( 0, 18f, -10f );
+			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
+		}
 		else if ( FourDiceUtils.AreClose( Camera.main.aspect, 16f / 9f, 0.01f ) ) {
 			Camera.main.transform.position = new Vector3( 0, 13.5f, -7f );
 			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
 		}
+		else if ( FourDiceUtils.AreClose( Camera.main.aspect, 16f / 10f, 0.01f ) ) {
+			Camera.main.transform.position = new Vector3( 0, 14.5f, -7.5f );
+			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
+		}
+
 
 		_mainCameraStandardPosition = Camera.main.transform.position;
 	}
