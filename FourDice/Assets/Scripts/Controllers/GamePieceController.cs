@@ -27,6 +27,8 @@ public abstract class GamePieceController : SelectableObjectController
 	protected override void Awake()
 	{
 		base.Awake();
+
+
 	}
 
 
@@ -36,6 +38,7 @@ public abstract class GamePieceController : SelectableObjectController
 		base.Start();
 
 		// Find all player-based surfaces and set the appropriate material.
+
 
 		var mesh = this.gameObject.GetComponent<MeshRenderer>();
 
@@ -54,6 +57,7 @@ public abstract class GamePieceController : SelectableObjectController
 		mesh.materials = materials;
 
 		InitializeMaterials();
+
 	}
 
 	// Update is called once per frame

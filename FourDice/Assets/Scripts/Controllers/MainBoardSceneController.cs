@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Assets.Scripts;
 using Assets.Scripts.DomainModel;
 using Assets.Scripts.DomainModel.AI;
 using UnityEngine;
@@ -75,6 +76,8 @@ public class MainBoardSceneController : MonoBehaviour
 	private AIBase _player1AI;
 	private AIBase _player2AI;
 
+	private float _currentAspectRatio;
+
 	// Use this for initialization
 	void Start()
 	{
@@ -113,10 +116,28 @@ public class MainBoardSceneController : MonoBehaviour
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
 
-		UpdateGameObjectsForAspectRatio();
+		StartCoroutine( CheckForAspectRatioChange() );
 
+		if ( Application.platform == RuntimePlatform.IPhonePlayer ) {
+			Utils.SwitchToMobileMaterials();
+		}
 
 		StartGame();
+	}
+
+	private IEnumerator CheckForAspectRatioChange()
+	{
+
+		UpdateGameObjectsForAspectRatio();
+
+		while ( true ) {
+			// If the aspect ratio change while running (for example, flipping between windows and full screen)
+			// adjust things again.	
+			if ( _currentAspectRatio != Camera.main.aspect ) {
+				UpdateGameObjectsForAspectRatio();
+			}
+			yield return new WaitForSeconds( 1 );
+		}
 
 	}
 
@@ -142,6 +163,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 
 		_mainCameraStandardPosition = Camera.main.transform.position;
+		_currentAspectRatio = Camera.main.aspect;
 	}
 
 	private void CreateGamePieces()
@@ -311,7 +333,12 @@ public class MainBoardSceneController : MonoBehaviour
 			}
 
 		}
+
+
+
 	}
+
+
 
 	public void DeserializeButtonPressed()
 	{
@@ -1397,6 +1424,8 @@ public class MainBoardSceneController : MonoBehaviour
 	}
 
 	Coroutine awaitFinalDiceRolls;
+
+
 	public void RollSelectedDice( bool isInitialDiceRoll, Action callback = null )
 	{
 		if ( _dice.Any( d => d.IsSelected || d.IsRolling ) ) {

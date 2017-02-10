@@ -3,10 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.DomainModel;
+using Assets.Scripts.Interfaces;
 using UnityEngine;
 
 
-public abstract class SelectableObjectController : MonoBehaviour
+public abstract class SelectableObjectController : MonoBehaviour, ICachesMaterialsAtStart
 {
 	public ParticleSystem SelectionParticleSystem;
 
@@ -45,7 +46,7 @@ public abstract class SelectableObjectController : MonoBehaviour
 		InitializeMaterials();
 	}
 
-	protected void InitializeMaterials()
+	public void InitializeMaterials()
 	{
 
 		_materials = gameObject.GetComponent<MeshRenderer>().materials;

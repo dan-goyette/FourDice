@@ -18,6 +18,8 @@ public class GameOptionsPanelController : MonoBehaviour
 		var animationSpeed = PlayerPrefs.GetInt( "AnimationSpeed" );
 		if ( animationSpeed >= 1 ) {
 			AnimationSpeedSlider.value = animationSpeed;
+
+
 		}
 
 	}

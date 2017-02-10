@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts;
 using Assets.Scripts.Constants;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,13 +34,11 @@ public class LaunchScreenController : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-
-		var animationSpeed = PlayerPrefs.GetInt( "AnimationSpeed" );
-		if ( animationSpeed >= 1 ) {
-			Time.timeScale = animationSpeed;
-		}
-
 		VersionText.text = string.Format( "v{0}", ApplicationConstants.ApplicationVersion );
+
+		if ( Application.platform == RuntimePlatform.IPhonePlayer ) {
+			Utils.SwitchToMobileMaterials();
+		}
 
 		StartCoroutine( StartIntro() );
 	}
