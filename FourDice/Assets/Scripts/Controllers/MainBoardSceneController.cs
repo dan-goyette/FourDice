@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Assets.Scripts.DomainModel;
 using Assets.Scripts.DomainModel.AI;
@@ -546,6 +547,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private TurnAction[] _bestPlayer1AITurnAction = null;
 	private TurnAction[] _bestPlayer2AITurnAction = null;
+	private TurnAction[] _bestTurnAction = null;
 	private IEnumerator RunGameLoop()
 	{
 		while ( true ) {
@@ -615,22 +617,42 @@ public class MainBoardSceneController : MonoBehaviour
 					}
 
 					if ( currentPlayerAI != null ) {
-						currentPlayerAIBestTurnAction = currentPlayerAI.GetNextMoves( this._fourDice.GameState );
-						if ( _activePlayerType == PlayerType.Player1 ) {
-							_bestPlayer1AITurnAction = currentPlayerAIBestTurnAction;
-						}
-						else {
-							_bestPlayer2AITurnAction = currentPlayerAIBestTurnAction;
+
+						foreach ( var die in _dice ) {
+							die.Deselect();
+							die.SetSelectable( false );
+							die.SetDeselectable( false );
 						}
 
-						for ( var i = 0; i < 4; i++ ) {
-							if ( currentPlayerAIBestTurnAction[0].DieIndex == i || currentPlayerAIBestTurnAction[1].DieIndex == i ) {
-								_dice[i].Select( force: true );
-							}
-						}
+						_bestTurnAction = null;
+
+						// Run in background
+
+						BackgroundWorker bw = new BackgroundWorker();
+						SetInfoText( "AI thinking..." );
+						bw.DoWork += Bw_DoWork;
+						bw.RunWorkerAsync( currentPlayerAI );
+
 					}
 				} );
 
+
+				if ( currentPlayerAI != null && _bestTurnAction != null ) {
+					SetInfoText( "" );
+
+					if ( _activePlayerType == PlayerType.Player1 ) {
+						_bestPlayer1AITurnAction = _bestTurnAction;
+					}
+					else {
+						_bestPlayer2AITurnAction = _bestTurnAction;
+					}
+
+					for ( var i = 0; i < 4; i++ ) {
+						if ( _bestTurnAction[0].DieIndex == i || _bestTurnAction[1].DieIndex == i ) {
+							_dice[i].Select( force: true );
+						}
+					}
+				}
 
 
 
@@ -1143,6 +1165,12 @@ public class MainBoardSceneController : MonoBehaviour
 			yield return new WaitForEndOfFrame();
 		}
 
+	}
+
+	private void Bw_DoWork( object sender, DoWorkEventArgs e )
+	{
+		var currentPlayerAI = e.Argument as AIBase;
+		_bestTurnAction = currentPlayerAI.GetNextMoves( this._fourDice.GameState );
 	}
 
 	private IEnumerable<GamePieceController> AllGamePieces()
