@@ -90,7 +90,7 @@ public class MainBoardSceneController : MonoBehaviour
 
 		_gameObjectAnimations = new List<GameObjectTransformAnimation>();
 
-		_mainCameraStandardPosition = Camera.main.transform.position;
+
 
 
 		DiceKeeperCollider.enabled = false;
@@ -112,11 +112,27 @@ public class MainBoardSceneController : MonoBehaviour
 		RollDiceButton.gameObject.SetActive( false );
 		UndoTurnButton.gameObject.SetActive( false );
 
+		UpdateGameObjectsForAspectRatio();
+
+
 		StartGame();
 
 	}
 
+	private void UpdateGameObjectsForAspectRatio()
+	{
+		// Move the camera.
+		if ( FourDiceUtils.AreClose( Camera.main.aspect, 4f / 3f, 0.01f ) ) {
+			Camera.main.transform.position = new Vector3( 0, 17, -9f );
+			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
+		}
+		else if ( FourDiceUtils.AreClose( Camera.main.aspect, 16f / 9f, 0.01f ) ) {
+			Camera.main.transform.position = new Vector3( 0, 13.5f, -7f );
+			Camera.main.transform.eulerAngles = new Vector3( 60, 0, 0 );
+		}
 
+		_mainCameraStandardPosition = Camera.main.transform.position;
+	}
 
 	private void CreateGamePieces()
 	{

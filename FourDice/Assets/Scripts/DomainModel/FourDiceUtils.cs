@@ -39,7 +39,7 @@ namespace Assets.Scripts.DomainModel
 
 			while ( !xDone || !yDone || !zDone ) {
 				float currentBound = lastInterval + interval;
-				if ( current.x >= lastInterval && current.x < lastInterval + (interval / 2f)) {
+				if ( current.x >= lastInterval && current.x < lastInterval + (interval / 2f) ) {
 					retval.x = lastInterval;
 					xDone = true;
 				}
@@ -72,6 +72,11 @@ namespace Assets.Scripts.DomainModel
 
 			return retval;
 
+		}
+
+		public static bool AreClose( float f1, float f2, float e )
+		{
+			return Mathf.Abs( f1 - f2 ) < e;
 		}
 	}
 }
