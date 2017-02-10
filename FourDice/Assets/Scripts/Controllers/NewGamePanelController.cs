@@ -54,7 +54,9 @@ public class NewGamePanelController : MonoBehaviour
 	void Update()
 	{
 		Player1AIDropdown.interactable = Player1AIToggle.isOn;
-		Player2AIDropdown.interactable = Player2AIToggle.isOn; ;
+		Player1AIDropdown.gameObject.SetActive( Player1AIToggle.isOn );
+		Player2AIDropdown.interactable = Player2AIToggle.isOn;
+		Player2AIDropdown.gameObject.SetActive( Player2AIToggle.isOn );
 	}
 
 
