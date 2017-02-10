@@ -110,15 +110,15 @@ namespace Assets.Scripts.DomainModel.AI
 					var value = GameStateValue( copiedGameState );
 					value -= originalValue;
 					if ( _opponentAI != null ) {
-						value -= (int)(_opponentAI.GetNextMoveValue( copiedGameState ) * 0.3);
+						value -= _opponentAI.GetNextMoveValue( copiedGameState );
 					}
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
 						bestActions[1] = turnAction;
 						bestValue = value;
-						if ( _opponentAI != null ) {
+						/*if ( _opponentAI != null ) {
 							Debug.WriteLine( string.Format( "{0} = {1} - {2} - {3}", bestValue, GameStateValue( copiedGameState ), originalValue, _opponentAI.GetNextMoveValue( copiedGameState ) ) );
-						}
+						}*/
 					}
 
 				}
@@ -151,25 +151,25 @@ namespace Assets.Scripts.DomainModel.AI
 			// Offense
 			foreach ( var piece in myPlayer.Attackers ) {
 				if ( piece.BoardPositionType == BoardPositionType.OpponentGoal ) {
-					value += 600;
+					value += this._aiOptions.AttackerReachesGoalPoints;
 				}
 				else if ( piece.BoardPositionType == BoardPositionType.Lane && piece.LanePosition != null ) {
-					value += PositionValue( piece.LanePosition.Value );
+					value += PositionValue( piece.LanePosition.Value ) * this._aiOptions.AttackerLanePositionPointMultiplier;
 				}
 			}
 
 			// Get defenders out
 			if ( myPlayer.Defenders[0].BoardPositionType != BoardPositionType.DefenderCircle ) {
-				value += 1;
+				value += this._aiOptions.DefenderLeavingDefenderCirclePoints;
 			}
 			if ( myPlayer.Defenders[1].BoardPositionType != BoardPositionType.DefenderCircle ) {
-				value += 1;
+				value += this._aiOptions.DefenderLeavingDefenderCirclePoints;
 			}
 
 			// Stomp on opponents
 			foreach ( var piece in opponentPlayer.Attackers ) {
 				if ( piece.BoardPositionType == BoardPositionType.OwnGoal ) {
-					value += 300;
+					value += this._aiOptions.OpponentAttackersInOwnGoalPoints;
 				}
 			}
 
@@ -187,20 +187,20 @@ namespace Assets.Scripts.DomainModel.AI
 					if ( PT0 == _playerType || PT1 == _playerType ) {
 						// It's good to double up next to an opponent piece on my side of the board
 						if ( position <= FourDice.Player1ThresholdLanePosition && (PT0 != _playerType || PT1 != _playerType) ) {
-							value += 100;
+							value += this._aiOptions.PutOpponentAtRiskOnSelfSidePoints;
 						}
 						// It's bad to double up on the opponent's side of the board
 						else if ( position > FourDice.Player1ThresholdLanePosition ) {
 							if ( PT0 == _playerType ) {
-								value -= 500;
+								value -= this._aiOptions.PenaltyForDoublingUpOnOpponentsSidePoints;
 							}
 							if ( PT1 == _playerType ) {
-								value -= 500;
+								value -= this._aiOptions.PenaltyForDoublingUpOnOpponentsSidePoints;
 							}
 						}
 						// Don't double up with my own piece on my side of the board
 						else {
-							value -= 30;
+							value -= this._aiOptions.PenaltyForDoublingUpOnSelfSidePoints;
 						}
 					}
 				}

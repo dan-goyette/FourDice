@@ -6,24 +6,26 @@ using System.Diagnostics;
 using System.Linq;
 using Assets.Scripts.DomainModel.AI;
 using Assets.Scripts.DomainModel;
+using System.Threading;
+using System.Media;
 
 namespace FourDiceGame.Test
 {
 	/// <summary>
-	/// Summary description for UnitTest2
+	/// DanicaAITest runs the AIs against each other
 	/// </summary>
 	[TestClass]
 	public class DanicaAITest
 	{
 		AIBase danicaAI1;
 		AIBase danicaAI2;
-		int numberOfGames = 1;
+		int numberOfGames = 50;
 		string startState = "";
 
 		[TestInitialize]
 		public void TestInit()
 		{
-			danicaAI1 = new BestAI( PlayerType.Player1, true );
+			danicaAI1 = new AIBase( PlayerType.Player1, true);
 			danicaAI2 = new BestAI( PlayerType.Player2, true );
 		}
 
@@ -37,6 +39,8 @@ namespace FourDiceGame.Test
 			}
 
 			Debug.WriteLine( string.Format( "{0} wins {1}\n{2} wins {3}", danicaAI1.GetType().Name, player1Wins, danicaAI2.GetType().Name, numberOfGames - player1Wins ) );
+
+			SystemSounds.Exclamation.Play();
 		}
 
 		public bool PlayAGame( AIBase AI1, AIBase AI2 )
@@ -69,6 +73,12 @@ namespace FourDiceGame.Test
 					fourDice.ApplyTurnAction( nextMoves[1] );
 				}
 				fourDice.RerollDice();
+				while (fourDice.GameState.Dice.Select(d => d.Value).Distinct().Count() == 1) {
+					foreach(var die in fourDice.GameState.Dice) {
+						die.IsChosen = true;
+					}
+					fourDice.RerollDice();
+				}
 
 				if ( numberOfGames == 1 ) {
 					Debug.WriteLine( fourDice.GameState.GetSerializationCode() );

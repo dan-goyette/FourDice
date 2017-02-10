@@ -7,8 +7,6 @@ namespace Assets.Scripts.DomainModel.AI
 {
 	public class BestAI : AIBase
 	{
-
-
 		public BestAI( PlayerType playerType, bool simulateOpponent, AIOptions aiOptions = null ) : base( playerType, simulateOpponent: simulateOpponent, aiOptions: aiOptions ) { }
 
 		protected override int GameStateValue( GameState gameState )
