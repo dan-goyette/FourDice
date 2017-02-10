@@ -44,9 +44,9 @@ namespace FourDiceGame.Test
 			FourDice fourDice = new FourDice( null, "danicaAI" );
 			fourDice.GameState.CurrentPlayerType = fourDice.RollToSeeWhoGoesFirst();
 			var nextMoves = new TurnAction[2];
-			
-			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished && startState!="end") {
-				if (startState.Length > 0) {
+
+			while ( !FourDice.GetGameEndResult( fourDice.GameState ).IsFinished && startState != "end" ) {
+				if ( startState.Length > 0 ) {
 					fourDice.GameState.InitializeFromSerializationCode( startState );
 					Debug.WriteLine( fourDice.GameState.GetAsciiState() );
 					startState = "end";

@@ -14,14 +14,16 @@ namespace Assets.Scripts.DomainModel.AI
 		protected int bestValue = -10000;
 		protected int originalValue = 0;
 
-		public AIBase( PlayerType playerType, bool simulateOpponent = true )
+		protected readonly AIOptions _aiOptions;
+
+		public AIBase( PlayerType playerType, bool simulateOpponent = true, AIOptions aiOptions = null )
 		{
+			this._aiOptions = aiOptions ?? new AIOptions();
 			this._playerType = playerType;
-            if (simulateOpponent)
-            {
-                this._opponentAI = new OpponentAI( _playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false);
-            }
-        }
+			if ( simulateOpponent ) {
+				this._opponentAI = new OpponentAI( _playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1, false );
+			}
+		}
 
 		public TurnAction[] GetNextMoves( GameState originalGameState )
 		{
@@ -107,16 +109,15 @@ namespace Assets.Scripts.DomainModel.AI
 				else {
 					var value = GameStateValue( copiedGameState );
 					value -= originalValue;
-					if (_opponentAI != null)
-                    {
-                        value -= (int) (_opponentAI.GetNextMoveValue( copiedGameState ) * 0.3);
+					if ( _opponentAI != null ) {
+						value -= (int)(_opponentAI.GetNextMoveValue( copiedGameState ) * 0.3);
 					}
 					if ( value > bestValue ) {
 						bestActions[0] = prevAction;
 						bestActions[1] = turnAction;
 						bestValue = value;
 						if ( _opponentAI != null ) {
-							Debug.WriteLine( string.Format("{0} = {1} - {2} - {3}", bestValue, GameStateValue( copiedGameState ), originalValue, _opponentAI.GetNextMoveValue( copiedGameState ) ));
+							Debug.WriteLine( string.Format( "{0} = {1} - {2} - {3}", bestValue, GameStateValue( copiedGameState ), originalValue, _opponentAI.GetNextMoveValue( copiedGameState ) ) );
 						}
 					}
 
@@ -207,5 +208,17 @@ namespace Assets.Scripts.DomainModel.AI
 			//Debug.WriteLine(string.Format("{0} ",value));
 			return value;
 		}
+	}
+
+
+	public class AIOptions
+	{
+		public int AttackerReachesGoalPoints = 600;
+		public int AttackerLanePositionPointMultiplier = 1;
+		public int DefenderLeavingDefenderCirclePoints = 1;
+		public int OpponentAttackersInOwnGoalPoints = 300;
+		public int PutOpponentAtRiskOnSelfSidePoints = 100;
+		public int PenaltyForDoublingUpOnOpponentsSidePoints = 500;
+		public int PenaltyForDoublingUpOnSelfSidePoints = 30;
 	}
 }
