@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using Assets.Scripts.Interfaces;
 using UnityEngine;
+#if UNITY_ADS
 using UnityEngine.Advertisements;
+#endif
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
@@ -59,10 +61,18 @@ namespace Assets.Scripts
 		public static DateTime LastAddShownTime = DateTime.MinValue;
 		public static IEnumerator ShowAd( Action callback )
 		{
+			yield return new WaitForEndOfFrame();
+
 			var minutesSinceLastAd = (DateTime.Now - LastAddShownTime).TotalMinutes;
 			var shouldShowAd = minutesSinceLastAd > 15;
 
+#if !UNITY_ADS
+			shouldShowAd = false;
+#endif
+
+
 			if ( shouldShowAd ) {
+#if UNITY_ADS
 				if ( Advertisement.isSupported ) { // If runtime platform is supported...
 												   //	Advertisement.Initialize( "1302939", false, ); // ...initialize.
 
@@ -84,6 +94,7 @@ namespace Assets.Scripts
 					Advertisement.Show( showOptions );
 
 				}
+#endif
 			}
 			else {
 				callback();
