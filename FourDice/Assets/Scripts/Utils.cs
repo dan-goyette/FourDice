@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Assets.Scripts.Interfaces;
 using UnityEngine;
+using UnityEngine.Advertisements;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
@@ -52,5 +54,41 @@ namespace Assets.Scripts
 				}
 			}
 		}
+
+
+		public static DateTime LastAddShownTime = DateTime.MinValue;
+		public static IEnumerator ShowAd( Action callback )
+		{
+			var minutesSinceLastAd = (DateTime.Now - LastAddShownTime).TotalMinutes;
+			var shouldShowAd = minutesSinceLastAd > 15;
+
+			if ( shouldShowAd ) {
+				if ( Advertisement.isSupported ) { // If runtime platform is supported...
+												   //	Advertisement.Initialize( "1302939", false, ); // ...initialize.
+
+
+					// Wait until Unity Ads is initialized,
+					//  and the default ad placement is ready.
+					while ( !Advertisement.isInitialized || !Advertisement.IsReady() ) {
+						yield return new WaitForSeconds( 0.5f );
+					}
+
+					var showOptions = new ShowOptions() {
+						resultCallback = ( o ) => {
+							LastAddShownTime = DateTime.Now;
+							callback();
+
+						}
+					};
+					// Show the default ad placement.
+					Advertisement.Show( showOptions );
+
+				}
+			}
+			else {
+				callback();
+			}
+		}
+
 	}
 }

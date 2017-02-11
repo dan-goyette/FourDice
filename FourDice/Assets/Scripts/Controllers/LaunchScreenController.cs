@@ -36,7 +36,9 @@ public class LaunchScreenController : MonoBehaviour
 	{
 		VersionText.text = string.Format( "v{0}", ApplicationConstants.ApplicationVersion );
 
-		if ( Application.platform == RuntimePlatform.IPhonePlayer ) {
+		if ( Application.platform == RuntimePlatform.IPhonePlayer
+			|| Application.platform == RuntimePlatform.Android
+			|| Application.platform == RuntimePlatform.WebGLPlayer ) {
 			Utils.SwitchToMobileMaterials();
 		}
 

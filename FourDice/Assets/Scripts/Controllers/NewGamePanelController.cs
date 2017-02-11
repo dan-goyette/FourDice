@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts;
 using Assets.Scripts.DomainModel;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -65,7 +67,12 @@ public class NewGamePanelController : MonoBehaviour
 		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value] : null;
 		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value] : null;
 
-		SceneManager.LoadScene( "MainBoard" );
+		Action cb = () => {
+			SceneManager.LoadScene( "MainBoard" );
+		};
+		StartCoroutine( Utils.ShowAd( cb ) );
+
+
 	}
 
 
