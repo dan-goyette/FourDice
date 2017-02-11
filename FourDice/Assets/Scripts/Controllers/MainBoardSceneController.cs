@@ -658,11 +658,16 @@ public class MainBoardSceneController : MonoBehaviour
 						_bestTurnAction = null;
 
 						// Run in background
-
-						BackgroundWorker bw = new BackgroundWorker();
 						SetInfoText( "AI thinking..." );
-						bw.DoWork += Bw_DoWork;
-						bw.RunWorkerAsync( currentPlayerAI );
+						if ( Application.platform == RuntimePlatform.WebGLPlayer ) {
+							// We can't do background work on WebGL
+							ComputeNextAiTurn( currentPlayerAI );
+						}
+						else {
+							BackgroundWorker bw = new BackgroundWorker();
+							bw.DoWork += Bw_DoWork;
+							bw.RunWorkerAsync( currentPlayerAI );
+						}
 
 					}
 				} );
@@ -1200,7 +1205,11 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void Bw_DoWork( object sender, DoWorkEventArgs e )
 	{
-		var currentPlayerAI = e.Argument as AIBase;
+		ComputeNextAiTurn( e.Argument as AIBase );
+	}
+
+	private void ComputeNextAiTurn( AIBase currentPlayerAI )
+	{
 		_bestTurnAction = currentPlayerAI.GetNextMoves( this._fourDice.GameState );
 	}
 
