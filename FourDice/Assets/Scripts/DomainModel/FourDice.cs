@@ -432,23 +432,23 @@ namespace Assets.Scripts.DomainModel
 			var retval = new List<AIDefinition>() {
 				new AIDefinition() {
 					ClassName = typeof(BestAI).Name,
-					FriendlyName = "BestAI",
+					FriendlyName = "Zero",
 					DifficultyRating = 8
 				},
 				new AIDefinition() {
 					ClassName = typeof(AIBase).Name,
-					FriendlyName = "AIBase",
+					FriendlyName = "Brian",
 					DifficultyRating = 6
 				},
 				new AIDefinition() {
 					ClassName = typeof(DefenderAI).Name,
-					FriendlyName = "Defender-Bot",
+					FriendlyName = "Denise",
 					DifficultyRating = 3
 				},
 				new AIDefinition() {
 					ClassName = typeof(OffensiveAI).Name,
-					FriendlyName = "Attacker-Bot",
-					DifficultyRating = 1
+					FriendlyName = "Andy",
+					DifficultyRating = 2
 				}
 			};
 

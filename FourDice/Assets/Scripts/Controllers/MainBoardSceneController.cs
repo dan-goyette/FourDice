@@ -1606,12 +1606,14 @@ public class MainBoardSceneController : MonoBehaviour
 
 	private void AppendToLogText( string text )
 	{
-		var newText = string.Format( "{0}{1}{2}", text, Environment.NewLine, LogText.text );
-		if ( newText.Length > 15000 ) {
-			newText = newText.Substring( 0, 15000 );
-			newText = string.Format( "{0}{1}<<Truncated>>", newText, Environment.NewLine );
+		if ( DebugCanvas.enabled ) {
+			var newText = string.Format( "{0}{1}{2}", text, Environment.NewLine, LogText.text );
+			if ( newText.Length > 15000 ) {
+				newText = newText.Substring( 0, 15000 );
+				newText = string.Format( "{0}{1}<<Truncated>>", newText, Environment.NewLine );
+			}
+			LogText.text = newText;
 		}
-		LogText.text = newText;
 	}
 }
 
