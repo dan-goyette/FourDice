@@ -120,8 +120,7 @@ public class MainBoardSceneController : MonoBehaviour
 		StartCoroutine( CheckForAspectRatioChange() );
 
 		if ( Application.platform == RuntimePlatform.IPhonePlayer
-			|| Application.platform == RuntimePlatform.Android
-			|| Application.platform == RuntimePlatform.WebGLPlayer ) {
+			|| Application.platform == RuntimePlatform.Android ) {
 			Utils.SwitchToMobileMaterials();
 			MainLight.intensity = 4;
 		}
