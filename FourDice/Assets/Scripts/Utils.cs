@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Assets.Scripts.Interfaces;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -55,19 +56,25 @@ namespace Assets.Scripts
 
 
 		public static DateTime LastAdShownTime = DateTime.MinValue;
-		public static void ShowAd( Action callback )
+		public static void ShowAd( Action callback, Text debugText )
 		{
 			var minutesSinceLastAd = (DateTime.Now - LastAdShownTime).TotalMinutes;
 			var shouldShowAd = minutesSinceLastAd > 10;
 
+			debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Should show ad: " + shouldShowAd.ToString ());
+
 			if ( shouldShowAd ) {
+				debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Actually calling Ad service");
+
 				Action updateCallback = () => {
 					LastAdShownTime = DateTime.Now;
 					callback();
 				};
-				AdUtils.ShowDefaultAd( updateCallback );
+				AdUtils.ShowDefaultAd( updateCallback, debugText );
 			}
 			else {
+				debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Ad was recently shown. Not showing ad.");
+
 				Debug.Log( "Ad was recently shown. Not showing ad." );
 				callback();
 			}

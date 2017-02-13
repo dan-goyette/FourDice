@@ -20,6 +20,7 @@ public class NewGamePanelController : MonoBehaviour
 	public Dropdown Player2AIDropdown;
 
 	public Button StartGameButton;
+	public Text DebugText;
 
 	private List<Dropdown.OptionData> _aiOptions;
 	private List<AIDefinition> _aiDefinitions;
@@ -67,7 +68,11 @@ public class NewGamePanelController : MonoBehaviour
 		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value] : null;
 		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value] : null;
 
-		Utils.ShowAd( () => SceneManager.LoadScene( "MainBoard" ) );
+		DebugText.text = "Trying to play ad...";
+
+		Utils.ShowAd( () => {
+			SceneManager.LoadScene( "MainBoard" );
+		}, DebugText );
 
 
 	}
