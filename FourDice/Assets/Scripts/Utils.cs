@@ -54,14 +54,18 @@ namespace Assets.Scripts
 		}
 
 
-		public static DateTime LastAddShownTime = DateTime.MinValue;
+		public static DateTime LastAdShownTime = DateTime.MinValue;
 		public static void ShowAd( Action callback )
 		{
-			var minutesSinceLastAd = (DateTime.Now - LastAddShownTime).TotalMinutes;
-			var shouldShowAd = minutesSinceLastAd > 15;
+			var minutesSinceLastAd = (DateTime.Now - LastAdShownTime).TotalMinutes;
+			var shouldShowAd = minutesSinceLastAd > 10;
 
 			if ( shouldShowAd ) {
-				AdUtils.ShowDefaultAd( callback );
+				Action updateCallback = () => {
+					LastAdShownTime = DateTime.Now;
+					callback();
+				};
+				AdUtils.ShowDefaultAd( updateCallback );
 			}
 			else {
 				Debug.Log( "Ad was recently shown. Not showing ad." );

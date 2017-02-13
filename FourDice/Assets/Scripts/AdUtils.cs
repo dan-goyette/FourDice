@@ -10,10 +10,7 @@ public static class AdUtils
 	{
 #if UNITY_ADS
 
-		if ( Advertisement.isSupported ) { // If runtime platform is supported...
-			Advertisement.Initialize( "1302939", false ); // ...initialize.
-		}
-
+		InitAdService();
 
 		if ( !Advertisement.IsReady() ) {
 			Debug.Log( "Ads not ready for default placement" );
@@ -25,5 +22,15 @@ public static class AdUtils
 		Debug.Log( "Ads not supported. Not showing ad." );
 		callback();
 #endif
+	}
+
+
+	public static void InitAdService() {
+		#if UNITY_ADS
+
+		if ( Advertisement.isSupported ) { // If runtime platform is supported...
+			Advertisement.Initialize( "1302939", false ); // ...initialize.
+		}
+		#endif
 	}
 }
