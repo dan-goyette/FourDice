@@ -5,10 +5,6 @@ using System.Linq;
 using System.Text;
 using Assets.Scripts.Interfaces;
 using UnityEngine;
-#if UNITY_ADS
-using UnityEngine.Advertisements;
-#endif
-using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
 {
@@ -59,45 +55,15 @@ namespace Assets.Scripts
 
 
 		public static DateTime LastAddShownTime = DateTime.MinValue;
-		public static IEnumerator ShowAd( Action callback )
+		public static void ShowAd()
 		{
-			yield return new WaitForEndOfFrame();
-
 			var minutesSinceLastAd = (DateTime.Now - LastAddShownTime).TotalMinutes;
 			var shouldShowAd = minutesSinceLastAd > 15;
 
-#if !UNITY_ADS
 			shouldShowAd = false;
-#endif
-
 
 			if ( shouldShowAd ) {
-#if UNITY_ADS
-				if ( Advertisement.isSupported ) { // If runtime platform is supported...
-												   //	Advertisement.Initialize( "1302939", false, ); // ...initialize.
-
-
-					// Wait until Unity Ads is initialized,
-					//  and the default ad placement is ready.
-					while ( !Advertisement.isInitialized || !Advertisement.IsReady() ) {
-						yield return new WaitForSeconds( 0.5f );
-					}
-
-					var showOptions = new ShowOptions() {
-						resultCallback = ( o ) => {
-							LastAddShownTime = DateTime.Now;
-							callback();
-
-						}
-					};
-					// Show the default ad placement.
-					Advertisement.Show( showOptions );
-
-				}
-#endif
-			}
-			else {
-				callback();
+				AdUtils.ShowDefaultAd();
 			}
 		}
 
