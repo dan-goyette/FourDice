@@ -67,9 +67,9 @@ public class NewGamePanelController : MonoBehaviour
 		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value] : null;
 		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value] : null;
 
-		Utils.ShowAd();
+		Utils.ShowAd( () => SceneManager.LoadScene( "MainBoard" ) );
 
-		SceneManager.LoadScene( "MainBoard" );
+
 	}
 
 
