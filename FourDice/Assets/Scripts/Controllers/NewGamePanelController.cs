@@ -7,6 +7,8 @@ using Assets.Scripts.DomainModel;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Advertisements;
+using System.Net;
 
 public class NewGamePanelController : MonoBehaviour
 {
@@ -20,7 +22,6 @@ public class NewGamePanelController : MonoBehaviour
 	public Dropdown Player2AIDropdown;
 
 	public Button StartGameButton;
-	public Text DebugText;
 
 	private List<Dropdown.OptionData> _aiOptions;
 	private List<AIDefinition> _aiDefinitions;
@@ -53,6 +54,23 @@ public class NewGamePanelController : MonoBehaviour
 		}
 	}
 
+
+	public static bool HasConnection()
+	{
+		try
+		{
+			using (var client = new WebClient())
+			using (var stream = new WebClient().OpenRead("http://www.google.com"))
+			{
+				return true;
+			}
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
 	// Update is called once per frame
 	void Update()
 	{
@@ -68,11 +86,9 @@ public class NewGamePanelController : MonoBehaviour
 		Player1AI = Player1AIToggle.isOn ? _aiDefinitions[Player1AIDropdown.value] : null;
 		Player2AI = Player2AIToggle.isOn ? _aiDefinitions[Player2AIDropdown.value] : null;
 
-		DebugText.text = "Trying to play ad...";
-
 		Utils.ShowAd( () => {
 			SceneManager.LoadScene( "MainBoard" );
-		}, DebugText );
+		});
 
 
 	}

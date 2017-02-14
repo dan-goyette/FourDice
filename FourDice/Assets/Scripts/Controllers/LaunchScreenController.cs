@@ -41,8 +41,6 @@ public class LaunchScreenController : MonoBehaviour
 			Utils.SwitchToMobileMaterials();
 		}
 
-		AdUtils.InitAdService();
-
 		StartCoroutine( StartIntro() );
 	}
 

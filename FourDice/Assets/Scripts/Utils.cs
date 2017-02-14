@@ -56,25 +56,25 @@ namespace Assets.Scripts
 
 
 		public static DateTime LastAdShownTime = DateTime.MinValue;
-		public static void ShowAd( Action callback, Text debugText )
+		public static void ShowAd( Action callback )
 		{
 			var minutesSinceLastAd = (DateTime.Now - LastAdShownTime).TotalMinutes;
 			var shouldShowAd = minutesSinceLastAd > 10;
 
-			debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Should show ad: " + shouldShowAd.ToString ());
 
 			if ( shouldShowAd ) {
-				debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Actually calling Ad service");
 
-				Action updateCallback = () => {
+				Action didNotPlayAdCallback = () => {
+					callback();
+				};
+				Action playedAdCallback = () => {
 					LastAdShownTime = DateTime.Now;
 					callback();
 				};
-				AdUtils.ShowDefaultAd( updateCallback, debugText );
+				AdUtils.ShowDefaultAd( playedAdCallback, didNotPlayAdCallback );
 			}
 			else {
-				debugText.text = string.Format ("{0}{1}{2}", debugText.text, Environment.NewLine, "Ad was recently shown. Not showing ad.");
-
+				
 				Debug.Log( "Ad was recently shown. Not showing ad." );
 				callback();
 			}

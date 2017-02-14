@@ -7,6 +7,6 @@ namespace Assets.Scripts.Constants
 {
 	public static class ApplicationConstants
 	{
-		public static string ApplicationVersion = "1.0.3";
+		public static string ApplicationVersion = "1.0.7";
 	}
 }
